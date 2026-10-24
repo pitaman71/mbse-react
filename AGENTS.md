@@ -9,7 +9,8 @@ The schema, object and relation browsers and the object inspector (VISUALIZATION
   in them: never edit a sibling from here.
 - **What this repository builds is specified in the workspace's `VISUALIZATION.md`**, by feature and capability ID;
   cite those IDs rather than restate them.
-- **Type-check** from `typescript5/`: `npm install && npm run typecheck`.
+- **Type-check and test** from `typescript5/`: `npm install && npm run typecheck && npm test` (Vitest, one-shot,
+  against the golden corpus). Decisions taken where VISUALIZATION.md is silent are in `docs/DESIGN.md`.
 - **It reads logical views through mbse-rest's client** (`@mbse/rest/Services/Rest/Client`: `Client`, `Views`), whose
   calls, templates and view kinds are mbse-rest's `docs/CONTRACT.md`. Develop against mbse-rest's golden corpus
   (`../mbse-rest/conformance/`) before a server runs, serving it through a fetch of your own as mbse-rest's
