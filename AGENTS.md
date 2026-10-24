@@ -1,6 +1,6 @@
 # Guide for AI agents
 
-The schema, object and relation browsers and the object inspector (VISUALIZATION.md, FEA-004 and FEA-005). React, TypeScript and CSS-in-TS, in `typescript5/` (`@mbse/react`).
+The schema, object and relation browsers and the object inspector (VISUALIZATION.md, FEA-004 and FEA-005), reading logical views through mbse-rest's client (`@mbse/rest`). React, TypeScript and CSS-in-TS, in `typescript5/` (`@mbse/react`).
 
 ## Invariants
 
