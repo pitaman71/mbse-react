@@ -90,7 +90,8 @@ describe("detail and adjacency", () => {
     const s = service();
     const detail = await s.detail(await goal(s), "work.Goal");
     expect(detail.object.label).toBe("Demoable index site");
-    expect([...detail.object.properties.keys()]).toEqual(["title", "description"]);
+    expect(detail.object.summary).toBe("Browse and inspect the seeded project.");
+    expect(detail.object.properties.size).toBe(0); // title and description are its label and summary
     expect(detail.entries.map((e) => e.label)).toEqual([
       "work.InGoals: Demoable index site, work.Goals",
       "work.HasGoal: Demoable index site, MVP",

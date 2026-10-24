@@ -21,7 +21,8 @@ export interface ObjectView {
   readonly label: string;
   /** CAP-005; empty where it holds none. */
   readonly summary: string;
-  /** Its other properties the frame assigns: a chip's (CAP-006), or every one a detail holds (CAP-007). */
+  /** The other properties the frame assigns it, besides its label's and its summary's: a chip's (CAP-006), or every
+   * other one a detail holds (CAP-007). */
   readonly properties: ReadonlyMap<string, unknown>;
 }
 
@@ -138,9 +139,8 @@ export class Service {
   async detail(reference: unknown, schema?: string): Promise<DetailView> {
     const [frame] = await this.view("detail", { x: reference });
     if (frame === undefined) throw new Error("the service holds no such object");
-    const object = objectOf(this.store, frame, "x", schema);
     return {
-      object: { ...object, properties: Views.properties(this.store, frame, "x") },
+      object: objectOf(this.store, frame, "x", schema),
       entries: frame.entries.map((entry) => entryOf(this.store, frame, entry)),
     };
   }
