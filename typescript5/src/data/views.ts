@@ -129,6 +129,7 @@ export class Service {
 
   /** CAP-006 over a schema's extent, loaded whole: each object's chip, in frame order. */
   async chips(schema: string): Promise<ObjectView[]> {
+    await this.schemas();
     const frames = await this.view("chip", { x: this.store.registered(schema) });
     return frames.map((frame) => objectOf(this.store, frame, "x", schema));
   }
@@ -147,6 +148,7 @@ export class Service {
   /** CAP-008: the objects of schema `linked` that `reference`'s adjacency `adjacency` links, each its chip and the entry
    * linking it. */
   async adjacency(reference: unknown, adjacency: string, linked: string): Promise<AdjacentView[]> {
+    await this.schemas();
     const frames = await this.view("adjacency", { x: reference, y: this.store.registered(linked) }, adjacency);
     return frames.flatMap((frame) => {
       const object = objectOf(this.store, frame, "y", linked);
@@ -157,6 +159,7 @@ export class Service {
   /** The entries every object of `schema` holds through its named adjacencies: CAP-007 with `x` given the schema, which
    * ranges over its extent (CAP-004), loaded whole. The relation browser (CAP-011) reads them. */
   async entries(schema: string): Promise<EntryView[]> {
+    await this.schemas();
     const frames = await this.view("detail", { x: this.store.registered(schema) });
     return frames.flatMap((frame) => frame.entries.map((entry) => entryOf(this.store, frame, entry)));
   }
