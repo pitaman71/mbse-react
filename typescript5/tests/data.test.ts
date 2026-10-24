@@ -77,3 +77,37 @@ describe("views", () => {
     await expect(service().chips("work.Project")).rejects.toMatchObject({ status: NO_CASE });
   });
 });
+
+describe("detail and adjacency", () => {
+  const goal = async (s: Service): Promise<unknown> => {
+    const { Views } = await import("@mbse/rest/Services/Rest/Client");
+    const { response } = await import("../src/data/corpus.js");
+    await s.schemas();
+    return Views.read(s.store, response("detail-goal").split("\n")[0]!).binds.get("x");
+  };
+
+  test("CAP-007: every property, and each entry with its linked objects' labels and schemas", async () => {
+    const s = service();
+    const detail = await s.detail(await goal(s), "work.Goal");
+    expect(detail.object.label).toBe("Demoable index site");
+    expect([...detail.object.properties.keys()]).toEqual(["title", "description"]);
+    expect(detail.entries.map((e) => e.label)).toEqual([
+      "work.InGoals: Demoable index site, work.Goals",
+      "work.HasGoal: Demoable index site, MVP",
+      "work.Plans: Demoable index site, No-code index view",
+      "work.Plans: Demoable index site, Logical view as chip",
+    ]);
+    const plans = detail.entries[2]!;
+    expect(plans.links.map((l) => [l.link, l.object.schema, l.object.label])).toEqual([
+      ["goal", "work.Goal", "Demoable index site"], ["capability", "work.Capability", "No-code index view"]]);
+    expect([...plans.properties.keys()]).toContain("progress");
+  });
+
+  test("CAP-008: each linked object's chip and the entry linking it", async () => {
+    const s = service();
+    const linked = await s.adjacency(await goal(s), "capabilities", "work.Capability");
+    expect(linked.map((l) => l.object.label)).toEqual(["No-code index view", "Logical view as chip"]);
+    expect([...linked[0]!.entry.properties]).toEqual([["original", "2026-11-30"], ["forecast", "2026-12-07"],
+      ["progress", 0.25]]);
+  });
+});
