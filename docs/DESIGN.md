@@ -31,7 +31,9 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
    Vitest 4.1.12 (no known advisories) runs on Vite 7.
 3. **`preserveSymlinks`** in both `tsconfig.json` and Vite: the siblings are `file:` dependencies, linked into
    `node_modules`, and their sources must resolve `@mbse/schemas` and `yaml` from here, as they have no
-   `node_modules` of their own. `yaml` is therefore a dependency of this package.
+   `node_modules` of their own. `yaml` is therefore a dependency of this package. Vite also `dedupe`s `@mbse/schemas`
+   and `yaml` (M4): a sibling that has a `node_modules` of its own (mbse-rest's, once its tests have run) would
+   otherwise load a second copy of mbse-schemas, whose schemas are not instances of the first's classes.
 4. **The corpus fetch answers 599** for a request the corpus holds no case for, a status outside HTTP's, with
    `{"error": ...}`, so the client raises its `ServiceError` and the UI shows the refusal in place of that view.
 5. **A live server through the dev server's proxy.** `MBSE_REST_URL=http://host:port npm run dev` proxies `/rest` to

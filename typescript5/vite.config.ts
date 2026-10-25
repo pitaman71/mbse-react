@@ -14,7 +14,10 @@ export default defineConfig({
   plugins: [react()],
   // The siblings are linked into node_modules (`file:` dependencies): resolving through the links, as Node does not
   // by default, lets the siblings' sources find their dependencies (`@mbse/schemas`, `yaml`) here.
-  resolve: { preserveSymlinks: true },
+  // `dedupe` resolves mbse-schemas (and its `yaml`) from here alone, so that the app, mbse-rest's client and the tests
+  // share one copy of its classes: a sibling that has a `node_modules` of its own (mbse-rest's, once its tests run)
+  // would otherwise load a second, and a schema of one copy is not an instance of the other's classes.
+  resolve: { preserveSymlinks: true, dedupe: ["@mbse/schemas", "yaml"] },
   define: {
     "import.meta.env.MBSE_SOURCE": JSON.stringify(live === undefined ? "corpus" : "live"),
     "import.meta.env.MBSE_REST_URL": JSON.stringify(live ?? ""),
