@@ -1,5 +1,5 @@
-/** The UI's behavior against the golden corpus: the browsers (FEA-004) and the inspector (FEA-005). A view the corpus
- * holds no case for is refused (599), and the UI says so in its place. */
+/** The UI's behavior against the golden corpus, which holds a case for every view the UI asks of the WorkTracker seed:
+ * the browsers (FEA-004) and the inspector (FEA-005). */
 
 import { Client, Views } from "@mbse/rest/Services/Rest/Client";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
@@ -32,7 +32,7 @@ describe("navigation", () => {
 });
 
 describe("the object browser (CAP-010)", () => {
-  test("a section per schema; chips in frame order; a view the corpus lacks says so in its place", async () => {
+  test("a section per schema; chips in frame order; every app schema's chips from the corpus", async () => {
     renderApp();
     const tasks = await screen.findByRole("region", { name: "work.Task" });
     await within(tasks).findByText("Install the schemas");
@@ -42,15 +42,19 @@ describe("the object browser (CAP-010)", () => {
     expect(await within(comments).findByText("work.Comment CMT-001")).toBeInTheDocument();
     expect(within(comments).getByText("Should chips show adjacencies?")).toBeInTheDocument();
     const projects = screen.getByRole("region", { name: "work.Project" });
-    expect(await within(projects).findByRole("alert")).toHaveTextContent("golden corpus holds no case");
+    expect(await within(projects).findByText("Schema-driven visualization")).toBeInTheDocument();
+    expect(within(projects).queryByRole("alert")).toBeNull();
   });
 });
 
 describe("the schema browser (CAP-009)", () => {
-  test("only schemas with a description: the WorkTracker declares none", async () => {
+  test("only schemas with a description: the WorkTracker's element schemas, each with its objects' chips", async () => {
     renderApp();
     await userEvent.click(screen.getByRole("tab", { name: "Schemas" }));
-    expect(await screen.findByText(/none of this app's has a description/)).toBeInTheDocument();
+    const goals = await screen.findByRole("region", { name: "work.Goal" });
+    expect(within(goals).getByText(/A milestone of a schedule/)).toBeInTheDocument();
+    expect(await within(goals).findByText("Demoable index site")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "work.GoalDirectory" })).toBeNull();
   });
 });
 
@@ -62,11 +66,12 @@ describe("the relation browser (CAP-011)", () => {
     expect([...grouped].map(([r, e]) => [r, e.length])).toEqual([["work.HasGoal", 1], ["work.Plans", 2], ["work.InGoals", 1]]);
   });
 
-  test("the corpus holds no detail view over a schema, so each refusal is reported", async () => {
+  test("every relation's entries, from the detail view over each schema", async () => {
     renderApp();
     await userEvent.click(screen.getByRole("tab", { name: "Relations" }));
-    expect(await screen.findByText(/Some views could not be read/)).toBeInTheDocument();
-    expect(screen.getByText("No relation entries.")).toBeInTheDocument();
+    const plans = await screen.findByRole("region", { name: "work.Plans" });
+    expect(within(plans).getAllByText("Demoable index site").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Some views could not be read/)).toBeNull();
   });
 });
 
@@ -87,8 +92,7 @@ describe("the inspector (FEA-005)", () => {
     expect(window.history.length).toBe(length + 1);
     expect(parse(window.location.hash).inspect?.schema).toBe("work.Task");
     release();
-    // the corpus holds no detail of a task
-    expect(await within(inspector).findByRole("alert")).toHaveTextContent("golden corpus holds no case");
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
     await userEvent.click(within(inspector).getByRole("button", { name: "Close the inspector" }));
     expect(screen.queryByRole("complementary", { name: "inspector" })).toBeNull();
   });
@@ -107,13 +111,14 @@ describe("the inspector (FEA-005)", () => {
     expect(within(capabilities).getByText("No-code index view")).toBeInTheDocument();
     expect(within(capabilities).getByText("The index site, from the schema alone.")).toBeInTheDocument();
     expect(within(capabilities).getByText("2026-12-07")).toBeInTheDocument();
-    // the corpus holds no adjacency view of the schedule: the detail view's own entry is shown, and the refusal
+    // the schedule, through CAP-008 too; then to it, and its own detail
     const schedule = within(inspector).getByRole("region", { name: "schedule" });
-    expect(await within(schedule).findByRole("alert")).toBeInTheDocument();
+    await waitFor(() => expect(within(schedule).queryByRole("status")).toBeNull());
+    expect(within(schedule).queryByRole("alert")).toBeNull();
     await userEvent.click(within(schedule).getByText("MVP"));
     expect(parse(window.location.hash).inspect?.schema).toBe("work.Schedule");
-    expect(await within(screen.getByRole("complementary", { name: "inspector" })).findByRole("alert"))
-      .toHaveTextContent("golden corpus holds no case");
+    expect(await within(screen.getByRole("complementary", { name: "inspector" }))
+      .findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
     // back: the goal again
     await act(async () => {
       window.history.back();

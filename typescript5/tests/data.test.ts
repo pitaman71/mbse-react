@@ -28,10 +28,11 @@ describe("schemas", () => {
     expect(names.some((n) => n.startsWith("Schemas."))).toBe(false);
   });
 
-  test("CAP-009: the WorkTracker declares no schema description, so none is browsable", async () => {
+  test("CAP-009: the WorkTracker's element schemas are browsable; its directories, undescribed, are not", async () => {
     const s = service();
     await s.schemas();
-    expect(browsableSchemas(s.store)).toEqual([]);
+    expect(browsableSchemas(s.store)).toEqual(["work.Project", "work.Feature", "work.Capability", "work.Result",
+      "work.Task", "work.Comment", "work.Schedule", "work.Goal"]);
   });
 
   test("CAP-009: a schema with a name and a description is browsable; one without, or a value object, is not", () => {
@@ -74,7 +75,13 @@ describe("views", () => {
   });
 
   test("a view the corpus does not hold is refused", async () => {
-    await expect(service().chips("work.Project")).rejects.toMatchObject({ status: NO_CASE });
+    const s = service();
+    await s.schemas();
+    const { Views } = await import("@mbse/rest/Services/Rest/Client");
+    const { response } = await import("../src/data/corpus.js");
+    const goal = Views.read(s.store, response("detail-goal").split("\n")[0]!).binds.get("x");
+    // the UI never asks a goal's capabilities for tasks: no case
+    await expect(s.adjacency(goal, "capabilities", "work.Task")).rejects.toMatchObject({ status: NO_CASE });
   });
 });
 
