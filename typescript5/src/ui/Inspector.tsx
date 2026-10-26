@@ -30,11 +30,9 @@ interface Refresh {
   readonly changed: () => void;
 }
 
-/** One linked object and the entry that links it, its entry properties beside its chip; below it, where nesting is
- * allowed, its own adjacency lists (CAP-019). */
-function Linked({ object, entry, children }: {
-  readonly object: ObjectView; readonly entry: EntryView; readonly children?: React.ReactNode;
-}) {
+/** One linked object and the entry that links it: its chip, its entry's properties beside it, and who created it and
+ * when (CAP-020). Never its own adjacencies: those are in its detail, once inspected (CAP-019). */
+function Linked({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
   return (
     <div className={s.linked}>
       <div className={s.entryRow}>
@@ -42,7 +40,6 @@ function Linked({ object, entry, children }: {
         {entry.properties.size > 0 && <EntryChip entry={entry} />}
       </div>
       <Byline object={object} />
-      {children}
     </div>
   );
 }
@@ -99,13 +96,12 @@ function Proposer({ reference, adjacency, refresh, onDone }: {
   );
 }
 
-/** CAP-008 for one named adjacency: one request for each schema its entries may link, the results together. Until
- * they arrive, or where every one is refused, the detail view's own entries are shown, labelled from it. "+" proposes
- * a new linked object (CAP-018). At the top level, each linked object shows its own to-many adjacencies, one level
- * deep (CAP-019): not its ownership adjacency, nor the relation it was reached through. */
-function AdjacencyList({ reference, adjacency, entries, refresh, depth = 0 }: {
+/** CAP-008 for one named adjacency, in the inspected object's detail (CAP-019): one request for each schema its
+ * entries may link, the results together, each linked object a chip. Until they arrive, or where every one is refused,
+ * the detail view's own entries are shown, labelled from it. "+" proposes a new linked object (CAP-018). */
+function AdjacencyList({ reference, adjacency, entries, refresh }: {
   readonly reference: unknown; readonly adjacency: Adjacency; readonly entries: readonly EntryView[];
-  readonly refresh: Refresh; readonly depth?: number;
+  readonly refresh: Refresh;
 }) {
   const service = useService();
   const [proposing, setProposing] = useState(false);
@@ -121,30 +117,20 @@ function AdjacencyList({ reference, adjacency, entries, refresh, depth = 0 }: {
   }, [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
   const fallback = entries.flatMap((entry) => others(entry, adjacency.me).map((object) => ({ object, entry })));
   const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
-  const nested = (object: ObjectView): Adjacency[] => depth > 0 || object.schema === undefined ? []
-    : adjacencies(service.store, object.schema).filter((a) => a.toMany && !a.owner && a.relation !== adjacency.relation);
-  const Heading = depth === 0 ? "h3" : "h4";
   return (
-    <section className={depth === 0 ? s.section : s.nested} aria-label={adjacency.name}>
-      <Heading className={s.sectionTitle}>
+    <section className={s.section} aria-label={adjacency.name}>
+      <h3 className={s.sectionTitle}>
         {adjacency.name} <span className={s.chipSchema}>({shown.length})</span>
         {adjacency.link !== undefined && adjacency.linked.length > 0 && !adjacency.owner && !proposing && (
           <button type="button" className={s.addButton} onClick={() => setProposing(true)}
             aria-label={`Add to ${adjacency.name}`}>+</button>
         )}
-      </Heading>
-      {depth === 0 && <p className={s.muted}>{adjacency.relation}</p>}
+      </h3>
+      <p className={s.muted}>{adjacency.relation}</p>
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
-      <div className={depth === 0 ? s.chipGrid : s.nestedGrid}>
-        {shown.map(({ object, entry }) => (
-          <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry}>
-            {nested(object).map((a) => (
-              <AdjacencyList key={a.name} reference={object.reference} adjacency={a} entries={[]} refresh={refresh}
-                depth={depth + 1} />
-            ))}
-          </Linked>
-        ))}
+      <div className={s.chipGrid}>
+        {shown.map(({ object, entry }) => <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
       </div>
       {loaded.state === "loading" && <Loading />}
       {loaded.state === "done" && loaded.value.errors.map((e, i) => <Failure key={i} error={e} />)}

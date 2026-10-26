@@ -132,10 +132,8 @@ export const checkboxField = css({
   display: "flex !important", alignItems: "center", gap: "0.5rem", "& input": { width: "1.1rem", height: "1.1rem" },
 });
 
-/** CAP-018 and CAP-019: a linked object with its own lists beneath it, "+", and a form's actions. */
+/** CAP-018: a linked object with its byline, "+", and a form's actions. */
 export const linked = css({ display: "grid", gap: "0.35rem" });
-export const nested = css({ marginLeft: "1rem", paddingLeft: "0.75rem", borderLeft: "2px solid var(--line)" });
-export const nestedGrid = css({ display: "grid", gap: "0.5rem" });
 export const addButton = css({
   marginLeft: "0.5rem", border: "1px solid var(--line)", background: "var(--surface)", color: "var(--accent)",
   borderRadius: 999, width: "1.6rem", height: "1.6rem", lineHeight: 1, cursor: "pointer", font: "inherit",
