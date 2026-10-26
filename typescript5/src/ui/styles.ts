@@ -115,3 +115,16 @@ export const button = css({
 });
 export const detailProps = css(props, { fontSize: "0.9rem", "& dd": { whiteSpace: "normal", overflowWrap: "anywhere" } });
 export const loading = css({ color: "var(--muted)", fontStyle: "italic" });
+
+/** CAP-014: the inspector's editor, and a value that a click opens it on. */
+export const editor = css({ display: "grid", gap: "0.75rem", "& label": { display: "grid", gap: "0.25rem" } });
+export const editorName = css({ fontSize: "0.85rem", color: "var(--muted)" });
+export const textarea = css({
+  width: "100%", minHeight: "4.5rem", font: "inherit", padding: "0.5rem", borderRadius: 6, resize: "vertical",
+  border: "1px solid var(--line)", background: "var(--surface)", color: "var(--text)",
+  "&:focus-visible": { outline: "none", borderColor: "var(--accent)" }, "&:disabled": { opacity: 0.6 },
+});
+export const editable = css({
+  cursor: "text", borderRadius: 4, "&:hover, &:focus-visible": { outline: "1px dashed var(--accent)", outlineOffset: 2 },
+});
+export const markdown = css({ "& > :first-child": { marginTop: 0 }, "& > :last-child": { marginBottom: 0 } });

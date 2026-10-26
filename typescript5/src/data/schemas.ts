@@ -91,3 +91,11 @@ export function adjacencies(store: any, name: string): Adjacency[] {
     return { name: adjacency, relation, me: String(a.me), linked };
   });
 }
+
+/** CAP-014: the properties of an object schema whose schema is `Schemas.OfStr`, read as markdown and editable, in the
+ * schema's order. An ownership key is an entry's property, never the object's, so none is among them. */
+export function textProperties(store: any, name: string): string[] {
+  const properties = schema(store, name)?.properties;
+  if (!(properties instanceof Map)) return [];
+  return [...properties].filter(([, p]: [string, any]) => p?.schema?.name === "Schemas.OfStr").map(([n]) => n);
+}

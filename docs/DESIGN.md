@@ -75,3 +75,26 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     top on each navigation.
 16. **Views are kept once read** (`Service`), as they are reads; a refused one is asked again next time.
 17. **Tests** are Vitest with Testing Library in jsdom, against the corpus through the same fetch the app uses.
+
+### CAP-014: object properties as markdown (decided by the agent, for review)
+
+18. **What is markdown**: every `Schemas.OfStr` value the UI shows: labels and summaries in chips and in the inspector,
+    and the inspector's text property values. Rendered with `react-markdown`; inline (a label, a chip) unwraps
+    paragraphs and shows links as their text, so that a chip stays one button. A chip's abbreviated property values
+    stay plain text, since cutting markdown short can break it.
+19. **What is editable**: the inspected object's own properties whose schema is `Schemas.OfStr`, set or not, in its
+    schema's order (`textProperties`). An ownership key is a property of the directory's entry, never the object's,
+    so none is editable here, as CAP-014 requires; entries' properties (a plan's dates) and values nested in value
+    objects or containers are not edited in CAP-014. Where the UI does not know the object's schema (decision 10), it
+    offers no Edit.
+20. **The editor replaces the detail** while editing: one text area per text property, starting from what the
+    object holds; the adjacencies return in view mode.
+21. **Saving**: only properties whose text changed are sent, through mbse-rest's `client.edit` (its CONTRACT.md,
+    Edits); a text area emptied clears its property. A save that changes nothing returns to view mode without a
+    request. While the service commits, save mode disables the text areas, Cancel, Close, and Save, which reads
+    "Saving…"; once committed, the inspector shows the detail the service gave back. A refused save returns to edit
+    mode with the draft kept and the refusal shown.
+22. **After a save, every view kept is dropped** (`Service.edit`), since an edit may change a chip, a label or an
+    entry anywhere; navigating to another object discards an unsaved draft.
+23. **Against the corpus**, only the edits it holds are accepted (`edit-task-title`, `edit-task-clear`); any other is
+    refused (599), as any view the corpus lacks is.

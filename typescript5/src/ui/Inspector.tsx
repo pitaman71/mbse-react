@@ -2,15 +2,15 @@
  * label stays at the top and its actions at the bottom, while the properties and adjacencies scroll between them; each
  * named adjacency lists its linked objects' chips (CAP-008). */
 
-import { useEffect, useRef } from "react";
-import { adjacencies, type Adjacency } from "../data/schemas.js";
+import { useEffect, useRef, useState } from "react";
+import { adjacencies, type Adjacency, textProperties } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
+import { Markdown, Value } from "./Markdown.js";
 import { type Target, useNavigation } from "./navigation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
-import { full } from "./values.js";
 
 /** The entries of `detail` that belong to `adjacency`: of its relation, with the object in its link. */
 export function entriesOf(detail: DetailView, adjacency: Adjacency): EntryView[] {
@@ -78,17 +78,35 @@ function EntriesByRelation({ detail }: { readonly detail: DetailView }) {
   ));
 }
 
-function Detail({ target, detail }: { readonly target: Target; readonly detail: DetailView }) {
+/** A value a click or a tap opens the editor on (CAP-014), where the object has text to edit. */
+function Editable({ onEdit, children }: { readonly onEdit?: () => void; readonly children: React.ReactNode }) {
+  if (onEdit === undefined) return <>{children}</>;
+  return (
+    <div className={s.editable} role="button" tabIndex={0} onClick={onEdit}
+      onKeyDown={(e) => { if (e.key === "Enter") onEdit(); }}>
+      {children}
+    </div>
+  );
+}
+
+function Detail({ target, detail, onEdit }: {
+  readonly target: Target; readonly detail: DetailView; readonly onEdit?: () => void;
+}) {
   const service = useService();
   const named = target.schema === undefined ? undefined : adjacencies(service.store, target.schema);
   return (
     <>
-      {detail.object.summary !== "" && <p>{detail.object.summary}</p>}
+      {detail.object.summary !== "" && (
+        <Editable onEdit={onEdit}><div className={s.markdown}><Markdown text={detail.object.summary} /></div></Editable>
+      )}
       {detail.object.properties.size > 0 && (
         <section className={s.section} aria-label="properties">
           <dl className={s.detailProps}>
             {[...detail.object.properties].map(([name, value]) => (
-              <div key={name} style={{ display: "contents" }}><dt>{name}</dt><dd>{full(value)}</dd></div>
+              <div key={name} style={{ display: "contents" }}>
+                <dt>{name}</dt>
+                <dd><Editable onEdit={onEdit}><div className={s.markdown}><Value value={value} /></div></Editable></dd>
+              </div>
             ))}
           </dl>
         </section>
@@ -107,37 +125,118 @@ function Detail({ target, detail }: { readonly target: Target; readonly detail: 
   );
 }
 
-/** The panel: hidden until an object is inspected; each inspection clears it, shows loading, and fetches the detail. */
+/** CAP-014's editor: one text area per text property of the object's schema, each starting from what it holds. */
+function Editor({ names, draft, onChange, disabled, error }: {
+  readonly names: readonly string[]; readonly draft: Readonly<Record<string, string>>;
+  readonly onChange: (name: string, text: string) => void; readonly disabled: boolean; readonly error?: Error;
+}) {
+  return (
+    <form className={s.editor} aria-label="edit" onSubmit={(e) => e.preventDefault()}>
+      {names.map((name) => (
+        <label key={name}>
+          <span className={s.editorName}>{name}</span>
+          <textarea className={s.textarea} name={name} value={draft[name] ?? ""} disabled={disabled}
+            onChange={(e) => onChange(name, e.target.value)} />
+        </label>
+      ))}
+      {error !== undefined && <Failure error={error} />}
+    </form>
+  );
+}
+
+type Mode = "view" | "edit" | "save";
+
+const textOf = (value: unknown): string => (typeof value === "string" ? value : "");
+
+/** The panel: hidden until an object is inspected; each inspection clears it, shows loading, and fetches the detail.
+ * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
+ * value, then save mode while the service commits, and view mode again with what the service gives back. */
 export function Inspector() {
   const { place, close } = useNavigation();
   const service = useService();
   const target = place.inspect;
   const body = useRef<HTMLDivElement>(null);
+  const current = useRef(target?.key);
+  current.current = target?.key;
   const loaded = useLoad(async () => {
     if (target === undefined) return undefined;
     await service.schemas();
     return service.detail(service.reference(target.key), target.schema);
   }, [service, target?.key, target?.schema]);
-  useEffect(() => { body.current?.scrollTo?.({ top: 0 }); }, [target?.key]);
+  const [edited, setEdited] = useState<DetailView | undefined>(undefined);
+  const [mode, setMode] = useState<Mode>("view");
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [failed, setFailed] = useState<Error | undefined>(undefined);
+  useEffect(() => {
+    body.current?.scrollTo?.({ top: 0 });
+    setEdited(undefined); setMode("view"); setDraft({}); setFailed(undefined);
+  }, [target?.key]);
   if (target === undefined) return null;
-  const label = loaded.state === "done" && loaded.value !== undefined ? loaded.value.object.label : undefined;
+  const detail = edited ?? (loaded.state === "done" ? loaded.value : undefined);
+  const names = detail !== undefined && target.schema !== undefined ? textProperties(service.store, target.schema) : [];
+  const edit = names.length === 0 ? undefined : () => {
+    setDraft(Object.fromEntries(names.map((name) => [name, textOf(detail!.values.get(name))])));
+    setFailed(undefined);
+    setMode("edit");
+  };
+  const save = async (): Promise<void> => {
+    if (detail === undefined) return;
+    const changed = Object.fromEntries(names.filter((name) => (draft[name] ?? "") !== textOf(detail.values.get(name)))
+      .map((name) => [name, draft[name] === "" ? null : draft[name]]));
+    if (Object.keys(changed).length === 0) { setMode("view"); return; }
+    const key = target.key;
+    setMode("save");
+    try {
+      const saved = await service.edit(detail.object.reference, changed, target.schema);
+      if (current.current !== key) return;
+      setEdited(saved);
+      setMode("view");
+    } catch (error) {
+      if (current.current !== key) return;
+      setFailed(error instanceof Error ? error : new Error(String(error)));
+      setMode("edit");
+    }
+  };
+  const label = detail?.object.label;
   return (
     <aside className={s.inspector} aria-label="inspector">
       <header className={s.inspectorHead}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className={s.inspectorLabel}>{label ?? (loaded.state === "error" ? "Not available" : "Loading…")}</h2>
+          <h2 className={s.inspectorLabel}>
+            {label !== undefined ? <Markdown text={label} inline />
+              : loaded.state === "error" ? "Not available" : "Loading…"}
+          </h2>
           {target.schema !== undefined && <div className={s.chipSchema}>{target.schema}</div>}
         </div>
-        <button type="button" className={s.button} onClick={close} aria-label="Close the inspector">✕</button>
+        <button type="button" className={s.button} onClick={close} disabled={mode === "save"}
+          aria-label="Close the inspector">✕</button>
       </header>
       <div ref={body} className={s.scroller} key={target.key}>
-        {loaded.state === "loading" && <Loading />}
-        {loaded.state === "error" && <Failure error={loaded.error} />}
-        {loaded.state === "done" && loaded.value !== undefined && <Detail target={target} detail={loaded.value} />}
+        {loaded.state === "loading" && edited === undefined && <Loading />}
+        {loaded.state === "error" && edited === undefined && <Failure error={loaded.error} />}
+        {detail !== undefined && (mode === "view"
+          ? <Detail target={target} detail={detail} onEdit={edit} />
+          : <Editor names={names} draft={draft} disabled={mode === "save"} error={failed}
+            onChange={(name, text) => setDraft((d) => ({ ...d, [name]: text }))} />)}
       </div>
       <footer className={s.inspectorActions}>
-        <button type="button" className={s.button} onClick={() => window.history.back()}>Back</button>
-        <button type="button" className={s.button} onClick={() => window.history.forward()}>Forward</button>
+        {mode === "view" ? (
+          <>
+            <button type="button" className={s.button} onClick={() => window.history.back()}>Back</button>
+            <button type="button" className={s.button} onClick={() => window.history.forward()}>Forward</button>
+            {edit !== undefined && <button type="button" className={s.button} onClick={edit}>Edit</button>}
+          </>
+        ) : (
+          <>
+            <button type="button" className={s.button} onClick={() => setMode("view")} disabled={mode === "save"}>
+              Cancel
+            </button>
+            <button type="button" className={s.button} onClick={() => { void save(); }} disabled={mode === "save"}
+              aria-busy={mode === "save"}>
+              {mode === "save" ? "Saving…" : "Save"}
+            </button>
+          </>
+        )}
       </footer>
     </aside>
   );
