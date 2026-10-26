@@ -7,10 +7,26 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 export const VIEWS = ["schemas", "objects", "relations"] as const;
 export type View = (typeof VIEWS)[number];
 
-/** An object to inspect: its reference's key (`Views.keyOf`, its JSON) and its schema, where the UI knows it. */
-export interface Target {
+/** An object, by its reference's key (`Views.keyOf`, its JSON), and its schema, where the UI knows it. */
+export interface Bound {
   readonly key: string;
   readonly schema?: string | undefined;
+}
+
+/** CAP-023: what anchors a relation inspector besides its object: a relation that holds the object, the link the
+ * object fills in it, and bindings for the relation's other links and property values on it, which define the
+ * sibling context. */
+export interface RelationAnchor {
+  readonly relation: string;
+  readonly link: string;
+  readonly links: Readonly<Record<string, Bound>>;
+  readonly properties: Readonly<Record<string, unknown>>;
+}
+
+/** An object to inspect: a single object inspector's (CAP-017), anchored by its schema and ID (its reference); or,
+ * with an anchor, a relation inspector's (CAP-023). */
+export interface Target extends Bound {
+  readonly anchor?: RelationAnchor | undefined;
 }
 
 export interface Place {
@@ -48,8 +64,7 @@ export function NavigationProvider({ children }: { readonly children: ReactNode 
       window.removeEventListener("hashchange", changed);
     };
   }, []);
-  const inspect = useCallback((target: Target) => setInspected((current) =>
-    current?.key === target.key && current.schema === target.schema ? current : target), []);
+  const inspect = useCallback((target: Target) => setInspected(target), []);
   const show = useCallback((next: View) => {
     window.history.replaceState(window.history.state, "", format(next));
     setView(next);
