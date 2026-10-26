@@ -1,9 +1,9 @@
 /** CAP-023: the relation inspector's sibling context, and the CAP-008 views it and the adjacency lists read. */
 
 import { adjacencies, type Adjacency } from "../data/schemas.js";
-import type { AdjacentView, Service } from "../data/views.js";
+import type { AdjacentView, EntryView, ObjectView, Service } from "../data/views.js";
 import { byCreation } from "./Byline.js";
-import type { RelationAnchor, Target } from "./navigation.js";
+import type { Bound, RelationAnchor, Target } from "./navigation.js";
 
 /** CAP-008 from `reference` through `adjacency`, for each schema its entries may link, the results together; the
  * refusals beside them, and whether every one was refused. */
@@ -17,6 +17,15 @@ export async function adjacentViews(service: Service, reference: unknown, adjace
     else errors.push(r.reason instanceof Error ? r.reason : new Error(String(r.reason)));
   }
   return { views, errors, all: errors.length === settled.length };
+}
+
+/** CAP-023: the anchor of an object inspected from an adjacency list (or a
+ * directory's section on the Objects tab, CAP-010): the adjacency's relation, the link the object
+ * fills in the entry, and the adjacency's own link bound to the list's owner. None where the link is not known. */
+export function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView, entry: EntryView): RelationAnchor | undefined {
+  const link = entry.links.find((l) => l.link !== adjacency.me && l.object.key === object.key)?.link ?? adjacency.link;
+  return link === undefined ? undefined
+    : { relation: adjacency.relation, link, links: { [adjacency.me]: owner }, properties: {} };
 }
 
 /** The anchor's sibling context, in an adjacency list's order (CAP-021): every object the relation's entries link
