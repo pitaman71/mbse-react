@@ -24,10 +24,10 @@ const renderApp = (s = service()) => render(<App service={s} source="golden corp
 beforeEach(() => window.history.replaceState(null, "", "#/objects"));
 
 describe("navigation", () => {
-  test("the address bar carries the view and the inspected object", () => {
-    const place = { view: "relations" as const, inspect: { key: "{\"path\": {}}", schema: "work.Goal" } };
-    expect(parse(format(place))).toEqual(place);
-    expect(parse("")).toEqual({ view: "objects", inspect: undefined });
+  test("the address bar carries the view alone", () => {
+    expect(parse(format("relations"))).toBe("relations");
+    expect(parse("#/objects?inspect=x")).toBe("objects");
+    expect(parse("")).toBe("objects");
   });
 });
 
@@ -94,20 +94,20 @@ describe("the inspector (FEA-005)", () => {
     await userEvent.click(await screen.findByText("Install the schemas"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
     expect(within(inspector).getByRole("status")).toHaveTextContent("Loading");
-    expect(window.history.length).toBe(length + 1);
-    expect(parse(window.location.hash).inspect?.schema).toBe("work.Task");
+    expect(window.history.length).toBe(length); // the inspector stays out of the browser's history
+    expect(window.location.hash).toBe("#/objects");
     release();
     expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
     await userEvent.click(within(inspector).getByRole("button", { name: "Close the inspector" }));
     expect(screen.queryByRole("complementary", { name: "inspector" })).toBeNull();
   });
 
-  test("the detail view, its label at the top, adjacencies through CAP-008, and navigation with history", async () => {
-    const s = service();
-    const key = await keyIn(s, "detail-goal");
-    window.history.replaceState(null, "", format({ view: "objects", inspect: { key, schema: "work.Goal" } }));
-    renderApp(s);
+  test("the detail view, its label at the top, adjacencies through CAP-008, and the inspector's own history", async () => {
+    renderApp();
+    const length = window.history.length;
+    await userEvent.click(await screen.findByText("Demoable index site"));
     const inspector = await screen.findByRole("complementary", { name: "inspector" });
+    expect(within(inspector).getByRole("button", { name: "Back" })).toBeDisabled();
     expect(await within(inspector).findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
     expect(within(inspector).getByText("Browse and inspect the seeded project.")).toBeInTheDocument();
     // CAP-008: the capabilities' chips and their entries' properties, from the corpus's adjacency view
@@ -121,15 +121,20 @@ describe("the inspector (FEA-005)", () => {
     await waitFor(() => expect(within(schedule).queryByRole("status")).toBeNull());
     expect(within(schedule).queryByRole("alert")).toBeNull();
     await userEvent.click(within(schedule).getByText("MVP"));
-    expect(parse(window.location.hash).inspect?.schema).toBe("work.Schedule");
-    expect(await within(screen.getByRole("complementary", { name: "inspector" }))
-      .findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
-    // back: the goal again
-    await act(async () => {
-      window.history.back();
-      await new Promise((resolve) => window.addEventListener("popstate", resolve, { once: true }));
-    });
-    expect(await screen.findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
+    expect(window.history.length).toBe(length);
+    expect(window.location.hash).toBe("#/objects");
+    // the inspector's Back: the goal again; its Forward: the schedule again
+    expect(within(inspector).getByRole("button", { name: "Forward" })).toBeDisabled();
+    await userEvent.click(within(inspector).getByRole("button", { name: "Back" }));
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
+    await userEvent.click(within(inspector).getByRole("button", { name: "Forward" }));
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
+    // closing forgets the inspector's history
+    await userEvent.click(within(inspector).getByRole("button", { name: "Close the inspector" }));
+    await userEvent.click(await screen.findByText("Demoable index site"));
+    const reopened = await screen.findByRole("complementary", { name: "inspector" });
+    expect(within(reopened).getByRole("button", { name: "Back" })).toBeDisabled();
   });
 });
 
