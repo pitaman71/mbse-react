@@ -74,6 +74,9 @@ describe("schemas", () => {
       ["schedule", "work.HasGoal", ["work.Schedule"]],
       ["capabilities", "work.Plans", ["work.Capability"]],
     ]);
+    // An entry property counts: a directory and an ID determine a task, the directory alone does not.
+    expect(adjacencies(s.store, "work.TaskDirectory").map((a) => [a.name, a.toMany])).toEqual([["tasks", true]]);
+    expect(adjacencies(s.store, "work.Task").find((a) => a.name === "directory")?.toMany).toBe(false);
     expect(schemaOfLink(s.store, "work.Plans", "goal")).toBe("work.Goal");
     expect(schemasOfLink(s.store, "work.About", "topic").length).toBeGreaterThan(1);
     expect(schemaOfLink(s.store, "work.About", "topic")).toBeUndefined();
