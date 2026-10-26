@@ -89,7 +89,7 @@ async function held(service: ReturnType<typeof useService>, directory: string): 
   return [...objects.values()];
 }
 
-/** The chips of the objects a directory's singleton holds, as a grid (CAP-010). */
+/** The chips of the objects a directory's singleton holds, as a row (CAP-010). */
 function Held({ directory }: { readonly directory: string }) {
   const service = useService();
   const chips = useLoad(() => held(service, directory), [service, directory]);
@@ -97,7 +97,7 @@ function Held({ directory }: { readonly directory: string }) {
   if (chips.state === "error") return <Failure error={chips.error} />;
   if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
   return (
-    <div className={s.chipGrid} role="list">
+    <div className={s.chipRow} role="list">
       {chips.value.map((object) => (
         <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} /></div>
       ))}
@@ -187,7 +187,7 @@ export function RelationBrowser() {
           {description(service.store, relation) !== "" && <p className={s.muted}>{description(service.store, relation)}</p>}
           {entries.map((entry) => (
             <section key={entry.key} className={s.section} aria-label={entry.label}>
-              <div className={s.entryRow}>
+              <div className={`${s.chipRow} ${s.entryRow}`}>
                 <EntryChip entry={entry} />
                 {entry.links.map(({ link, object }) => (
                   <ObjectChip key={link} object={chips.get(object.key) ?? object} />

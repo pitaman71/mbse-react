@@ -60,14 +60,14 @@ export const muted = css({ color: "var(--muted)", fontSize: "0.85rem", margin: "
 export const error = css({ color: "var(--danger)", fontSize: "0.85rem", margin: "0.25rem 0", overflowWrap: "anywhere" });
 
 /** CAP-009's scrollable list of chips: one row, scrolled sideways. */
+/** A list of chips: one row, scrolled sideways where it overflows, never wrapped. */
 export const chipRow = css({
-  display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(14rem, 18rem)", gap: "0.75rem",
-  overflowX: "auto", paddingBottom: "0.5rem", scrollSnapType: "x proximity", "& > *": { scrollSnapAlign: "start" },
+  display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(min(85%, 14rem), 18rem)", gap: "0.75rem",
+  overflowX: "auto", overscrollBehaviorX: "contain", paddingBottom: "0.5rem", scrollSnapType: "x proximity",
+  "& > *": { scrollSnapAlign: "start" },
 });
-/** A grid of chips that reflows with the width. */
-export const chipGrid = css({
-  display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 16rem), 1fr))", gap: "0.75rem",
-});
+/** An adjacency list's row (CAP-019): wider, as each chip holds an entry's properties beside a pill. */
+export const adjacentRow = css({ gridAutoColumns: "minmax(min(85%, 16rem), 24rem)" });
 
 export const chip = css({
   display: "block", width: "100%", textAlign: "left", font: "inherit", color: "inherit",
@@ -90,9 +90,7 @@ export const props = css({
 });
 
 /** CAP-011: an entry's chip aside its linked objects' chips. */
-export const entryRow = css({
-  display: "grid", gap: "0.5rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))",
-});
+export const entryRow = css({ gridAutoColumns: "minmax(min(85%, 12rem), 16rem)", gap: "0.5rem" });
 export const entryChip = css({ background: "var(--accent-soft)" });
 
 /** CAP-019: an adjacency's preview, one chip in two columns: the entry's properties, then the linked object's pill. */

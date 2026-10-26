@@ -53,6 +53,27 @@ describe("the object browser (CAP-010)", () => {
     });
 });
 
+describe("lists of chips", () => {
+  test("scroll sideways on overflow rather than wrap: the browsers' and the inspector's", async () => {
+    const scrolls = (list: HTMLElement) => {
+      const style = getComputedStyle(list);
+      expect([style.display, style.gridAutoFlow, style.overflowX]).toEqual(["grid", "column", "auto"]);
+    };
+    renderApp();
+    const tasks = await screen.findByRole("region", { name: "work.Tasks" });
+    await within(tasks).findByText("Install the schemas");
+    scrolls(within(tasks).getByRole("list"));
+    await userEvent.click(within(tasks).getByText("Install the schemas"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    const result = await within(inspector).findByRole("region", { name: "result" });
+    await within(result).findByRole("button", { name: /RES-/ });
+    scrolls(within(result).getByRole("button", { name: /RES-/ }).parentElement!.closest("[title]")!.parentElement!);
+    await userEvent.click(screen.getByRole("tab", { name: "Relations" }));
+    const entry = (await screen.findAllByText("work.HasTask"))[0]!;
+    scrolls(entry.closest("section")!.querySelector("div")!);
+  });
+});
+
 describe("the schema browser (CAP-009)", () => {
   test("only schemas with a description: the WorkTracker's element schemas, each with its objects' chips", async () => {
     renderApp();
