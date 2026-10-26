@@ -55,25 +55,30 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
   );
 }
 
-/** What names a linked object beside its ID: its own label, or, where it has none (CAP-005's fallback, its schema's
- * name and its ID), its schema's name. */
-function nameOf(object: ObjectView): string {
+/** What names a linked object beside its ID, and whether that is prose: its own label; where it has none (CAP-005's
+ * fallback, its schema's name and its ID), its summary, else its first text property (a comment's text), either prose;
+ * else its schema's name. */
+function nameOf(object: ObjectView): { readonly name: string; readonly prose: boolean } {
   const fallback = object.schema === undefined ? object.id : `${object.schema} ${object.id}`;
-  return object.label === fallback ? object.schema ?? object.id : object.label;
+  if (object.label !== fallback) return { name: object.label, prose: false };
+  const text = object.summary !== "" ? object.summary
+    : [...object.properties.values()].find((v): v is string => typeof v === "string" && v.trim() !== "");
+  return text === undefined ? { name: object.schema ?? object.id, prose: false } : { name: text, prose: true };
 }
 
 /** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
- * the left; on the right, a pill `ID : name` of the linked object, inspected on a click. */
+ * the left, where it has any; on the right, a pill `ID : name` of the linked object, inspected on a click, wrapping where its name is
+ * prose. */
 export function AdjacentChip({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
   const ref = useScrolled<HTMLButtonElement>(current);
-  const name = nameOf(object);
+  const { name, prose } = nameOf(object);
   return (
     <div className={`${s.chip} ${s.adjacentChip}`} title={entry.label}>
-      <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>
+      {entry.properties.size > 0 && <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>}
       <div className={s.adjacentObject}>
-        <button ref={ref} type="button" className={s.pill} aria-current={current} data-key={object.key}
+        <button ref={ref} type="button" className={prose ? `${s.pill} ${s.prosePill}` : s.pill} aria-current={current} data-key={object.key}
           title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema })}>
           <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />
         </button>

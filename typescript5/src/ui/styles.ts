@@ -100,13 +100,19 @@ export const adjacentChip = css({
   display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, auto)", gap: "0.75rem", alignItems: "center",
 });
 export const adjacentEntry = css({ minWidth: 0 });
-export const adjacentObject = css({ minWidth: 0, justifySelf: "end", maxWidth: "100%" });
+export const adjacentObject = css({ minWidth: 0, justifySelf: "end", maxWidth: "100%", "&:only-child": {
+  gridColumn: "1 / -1", justifySelf: "stretch" } });
 export const pill = css({
   display: "inline-flex", alignItems: "baseline", gap: "0.3rem", maxWidth: "100%", font: "inherit", fontSize: "0.85rem",
   color: "inherit", background: "var(--accent-soft)", border: "1px solid var(--line)", borderRadius: 999,
   padding: "0.15rem 0.65rem", cursor: "pointer", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
   "&:hover, &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
   "&[aria-current=true]": { borderColor: "var(--accent)" },
+});
+/** A pill whose name is prose (a comment's text): it wraps, to three lines, rather than cut at one. */
+export const prosePill = css({
+  display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", whiteSpace: "normal", borderRadius: 12,
+  textAlign: "left",
 });
 export const pillKey = css({ color: "var(--muted)", fontVariantNumeric: "tabular-nums" });
 

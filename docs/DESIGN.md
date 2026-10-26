@@ -133,7 +133,9 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     kept in frame order otherwise; ties keep frame order.
 33. **An adjacency's preview is one chip per entry** (CAP-019): two columns, the entry's properties on the left and, on
     the right, a pill `ID : name` of the linked object, a click on which inspects it. Its ID is its path's last key
-    (`Views.lastKey`: its owning entry's key values, or a singleton's name); its name is its own label, or, where it
-    has none (CAP-005's fallback), its schema's name. Its summary and other properties wait for its detail. The
+    (`Views.lastKey`: its owning entry's key values, or a singleton's name). Its name is its own label; where it has
+    none (CAP-005's fallback), its summary, else its first text property (a comment's text), either shown as prose,
+    the pill wrapping to three lines; else its schema's name. Where the entry has no properties, the pill takes the
+    whole chip. The object's other properties wait for its detail. The
     byline (CAP-020) stays under the chip. (First built as the object's chip beside its entry's, which read as two
     things for one: "why are there two chips but one thingy?")
