@@ -30,18 +30,6 @@ interface Refresh {
   readonly changed: () => void;
 }
 
-/** One linked object and the entry that links it: one chip, the entry's properties beside the object's pill
- * (`AdjacentChip`), and who created the object and when (CAP-020). Never its own adjacencies: those are in its detail,
- * once inspected (CAP-019). */
-function Linked({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
-  return (
-    <div className={s.linked}>
-      <AdjacentChip object={object} entry={entry} />
-      <Byline object={object} />
-    </div>
-  );
-}
-
 /** CAP-018: a new object proposed through an adjacency: a field for each editable property of its schema (picked where
  * several fill the link) and of the relation's entries; Save commits the object and its entry in one transaction. */
 function Proposer({ reference, adjacency, refresh, onDone }: {
@@ -128,7 +116,7 @@ function AdjacencyList({ reference, adjacency, entries, refresh }: {
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
       <div className={s.chipGrid}>
-        {shown.map(({ object, entry }) => <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
+        {shown.map(({ object, entry }) => <AdjacentChip key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
       </div>
       {loaded.state === "loading" && <Loading />}
       {loaded.state === "done" && loaded.value.errors.map((e, i) => <Failure key={i} error={e} />)}
@@ -145,7 +133,7 @@ function EntriesByRelation({ detail }: { readonly detail: DetailView }) {
       <div className={s.chipGrid}>
         {detail.entries.filter((e) => e.relation === relation).flatMap((entry) => entry.links
           .filter((l) => l.object.key !== detail.object.key)
-          .map((l) => <Linked key={`${entry.key} ${l.link}`} object={l.object} entry={entry} />))}
+          .map((l) => <AdjacentChip key={`${entry.key} ${l.link}`} object={l.object} entry={entry} />))}
       </div>
     </section>
   ));

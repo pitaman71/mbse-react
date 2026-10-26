@@ -3,6 +3,7 @@
 
 import { useEffect, useRef } from "react";
 import type { EntryView, ObjectView } from "../data/views.js";
+import { moment } from "./Byline.js";
 import { Markdown } from "./Markdown.js";
 import { useNavigation } from "./navigation.js";
 import * as s from "./styles.js";
@@ -66,9 +67,20 @@ function nameOf(object: ObjectView): { readonly name: string; readonly prose: bo
   return text === undefined ? { name: object.schema ?? object.id, prose: false } : { name: text, prose: true };
 }
 
+/** A pill's header, where the object has a creation in its provenance (CAP-020): `{identity} @ {datestamp}`. */
+function PillHeader({ object }: { readonly object: ObjectView }) {
+  const created = object.provenance.created;
+  if (created === undefined) return null;
+  return (
+    <span className={s.pillHeader} aria-label="provenance">
+      {created.who} @ <time dateTime={created.when}>{moment(created.when)}</time>
+    </span>
+  );
+}
+
 /** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
- * the left, where it has any; on the right, a pill `ID : name` of the linked object, inspected on a click, wrapping where its name is
- * prose. */
+ * the left, where it has any; on the right, a pill of the linked object, inspected on a click: a header of who created
+ * it and when, where its provenance says (CAP-020), then `ID : name`, wrapping where its name is prose. */
 export function AdjacentChip({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
@@ -78,9 +90,12 @@ export function AdjacentChip({ object, entry }: { readonly object: ObjectView; r
     <div className={`${s.chip} ${s.adjacentChip}`} title={entry.label}>
       {entry.properties.size > 0 && <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>}
       <div className={s.adjacentObject}>
-        <button ref={ref} type="button" className={prose ? `${s.pill} ${s.prosePill}` : s.pill} aria-current={current} data-key={object.key}
+        <button ref={ref} type="button" className={s.pill} aria-current={current} data-key={object.key}
           title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema })}>
-          <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />
+          <PillHeader object={object} />
+          <span className={prose ? `${s.pillBody} ${s.prose}` : s.pillBody}>
+            <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />
+          </span>
         </button>
       </div>
     </div>

@@ -127,7 +127,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 31. **Provenance is read, not listed** (CAP-020): a frame's framework entries (`Provenance.*`) are kept out of the
     detail's, the relation browser's and the adjacency lists' entries; `Views.provenance` reads them. The inspector
     shows "created by … · when" and "edited by … · when" under the label; each linked object in an adjacency list,
-    "created by … · when". Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
+    "{identity} @ {when}" as its pill's header (decision 33). Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
     browser leaves out `Parametrics` and `Provenance` with the other framework modules.
 32. **Creation order** (CAP-021): an adjacency list is sorted by creation time where every item it shows has one, and
     kept in frame order otherwise; ties keep frame order.
@@ -136,6 +136,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     (`Views.lastKey`: its owning entry's key values, or a singleton's name). Its name is its own label; where it has
     none (CAP-005's fallback), its summary, else its first text property (a comment's text), either shown as prose,
     the pill wrapping to three lines; else its schema's name. Where the entry has no properties, the pill takes the
-    whole chip. The object's other properties wait for its detail. The
-    byline (CAP-020) stays under the chip. (First built as the object's chip beside its entry's, which read as two
-    things for one: "why are there two chips but one thingy?")
+    whole chip. Where the object's provenance holds its creation (CAP-020), the pill is headed, in small italics, by
+    `{identity} @ {datestamp}`; no byline sits outside the chip. The object's other properties wait for its detail.
+    (First built as the object's chip beside its entry's, which read as two things for one: "why are there two chips
+    but one thingy?"; then with the byline under the chip, "disembodied from the pill".)
