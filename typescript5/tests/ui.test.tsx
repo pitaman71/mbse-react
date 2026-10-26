@@ -196,3 +196,39 @@ describe("booleans as checkboxes (CAP-022)", () => {
     expect(await within(inspector).findByRole("checkbox", { name: "resolves_thread" })).toBeChecked();
   });
 });
+
+describe("adjacencies: nested lists (CAP-019) and proposals (CAP-018)", () => {
+  test("a topic's threads, each with its replies; no + on an ownership adjacency", async () => {
+    renderApp();
+    await userEvent.click(await screen.findByText("Logical view as chip"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    // the capability's own comments; its feature's comments are nested in its feature list too (CAP-019)
+    await within(inspector).findAllByText("work.Comment CMT-001");
+    const comments = within(inspector).getAllByRole("region", { name: "comments" })
+      .find((r) => within(r).queryByText("work.Comment CMT-001") !== null)!;
+    const replies = await within(comments).findByRole("region", { name: "replies" });
+    expect(await within(replies).findByText("work.Comment CMT-002")).toBeInTheDocument();
+    expect(within(replies).getByText("work.Comment CMT-003")).toBeInTheDocument();
+    expect(within(inspector).queryByRole("button", { name: "Add to directory" })).toBeNull();
+  });
+
+  test("+ on a thread's replies proposes a reply, committed in one transaction", async () => {
+    const sent: string[] = [];
+    const watched = async (input: string, init?: RequestInit): Promise<Response> => {
+      if (typeof init?.body === "string" && init.body.includes("\"upsert\"")) sent.push(init.body);
+      return corpusFetch(input, init);
+    };
+    renderApp(new Service(new Client("http://corpus", watched)));
+    await userEvent.click(await screen.findByText("Logical view as chip"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    const replies = await within(inspector).findByRole("region", { name: "replies" });
+    await userEvent.click(within(replies).getByRole("button", { name: "Add to replies" }));
+    const form = within(replies).getByRole("form", { name: "new in replies" });
+    fireEvent.change(within(form).getByRole("textbox", { name: "text" }), { target: { value: "Closing this." } });
+    await userEvent.click(within(form).getByRole("checkbox", { name: "resolves_thread" }));
+    await userEvent.click(within(form).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(within(replies).queryByRole("form", { name: "new in replies" })).toBeNull());
+    expect(sent).toHaveLength(1); // the corpus's propose-reply: answered, so the request was the one it holds
+    expect(within(inspector).queryByRole("alert")).toBeNull();
+  });
+});

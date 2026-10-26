@@ -153,6 +153,18 @@ export class Service {
     return this.detailOf(frame, schema);
   }
 
+  /** CAP-018: proposes a new object of `schema` through `reference`'s `adjacency`, linked through `link`, with its
+   * properties `values` and its entry's `entry`, and gives the inbound object's detail once committed. Every view
+   * kept is dropped, as after an edit. */
+  async propose(reference: unknown, adjacency: string, link: string, schema: string,
+      values: Readonly<Record<string, unknown>>, entry: Readonly<Record<string, unknown>> = {}): Promise<DetailView> {
+    await this.schemas();
+    const [frame] = await this.client.propose(this.store, reference, adjacency, link, this.store.registered(schema),
+      values, entry);
+    this.frames.clear();
+    return this.detailOf(frame);
+  }
+
   private detailOf(frame: Frame | undefined, schema?: string): DetailView {
     if (frame === undefined) throw new Error("the service holds no such object");
     return {

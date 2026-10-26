@@ -77,6 +77,22 @@ export interface Adjacency {
   readonly me: string;
   /** The schemas whose objects its entries link, on the relation's other links: CAP-008's `y`, one request each. */
   readonly linked: readonly string[];
+  /** The relation's other link, where it has exactly one: where a proposal (CAP-018) links its new object. */
+  readonly link: string | undefined;
+  /** Whether it is the object's ownership adjacency (to its directory). */
+  readonly owner: boolean;
+  /** Whether the object may have several entries in it: no `unique` clause lets the object determine the rest. */
+  readonly toMany: boolean;
+}
+
+/** Whether `me` determines the relation's other links: some `unique(S)` clause holds every other link but not `me`. */
+function toOne(relation: any, me: string): boolean {
+  const links = [...(relation?.entry?.links?.keys?.() ?? [])].map(String);
+  const others = links.filter((l) => l !== me);
+  return [...(relation?.uniques ?? [])].some((clause: Iterable<unknown>) => {
+    const names = new Set([...clause].map(String));
+    return !names.has(me) && others.every((l) => names.has(l));
+  });
 }
 
 /** An object schema's named adjacencies, in its order (CAP-007 lists their entries, CAP-008 each one's chips). */
@@ -88,7 +104,9 @@ export function adjacencies(store: any, name: string): Adjacency[] {
     const relation = String(a.relation?.name ?? "");
     const linked = [...new Set(all.filter(({ adjacency: other }) => other.relation?.name === relation
       && other.me !== a.me).map(({ owner }) => owner))];
-    return { name: adjacency, relation, me: String(a.me), linked };
+    const links = [...(a.relation?.entry?.links?.keys?.() ?? [])].map(String).filter((l) => l !== String(a.me));
+    return { name: adjacency, relation, me: String(a.me), linked, link: links.length === 1 ? links[0] : undefined,
+      owner: a.owner === true, toMany: !toOne(a.relation, String(a.me)) };
   });
 }
 

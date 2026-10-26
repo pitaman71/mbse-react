@@ -105,3 +105,15 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     its property's name, and a checkbox in the editor; an absent boolean reads as unchecked, and is written only where
     the user changes it. The editor's fields (`Fields`) are shared by the object inspector and the adjacency
     inspector, and `editableProperties` gives them for an object schema or a relation's entries.
+25. **"+" on an adjacency** (CAP-018) wherever its relation has exactly one other link and it is not the object's
+    ownership adjacency (proposing a new directory means nothing); where several schemas fill the other link, the
+    proposer offers a choice. Every named adjacency is shown as a list, empty or not, so that "+" can add the first.
+26. **The proposer** shows a field for each editable property (text, boolean) of the new object's schema and of the
+    relation's entries; only what the user filled is sent (`Service.propose`, mbse-rest's `client.propose`).
+27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
+    service's views have changed (every view kept is dropped).
+28. **Nesting** (CAP-019): a top-level list's linked objects show their own adjacencies one level deep, those that
+    are to-many (no `unique` clause lets the object determine the rest), not ownership adjacencies, and not the
+    relation they were reached through: a topic's threads show their replies, and a reply's one thread is not shown
+    again. A nested list's count is what it loaded.
+29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
