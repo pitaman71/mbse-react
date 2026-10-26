@@ -151,8 +151,10 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 35. **The relation inspector** (CAP-023): a target carries an optional anchor, `{ relation, link, links, properties }`:
     the relation holding the object, the link it fills, and bindings for other links (each an object's key and
     schema) and for property values. A pill in an adjacency list anchors its object: the adjacency's relation, the
-    link the object fills in the entry, and the adjacency's own link bound to the list's owner, no property values. A
-    browser's chip and a crumb open a single object inspector, no anchor. The siblings are read through CAP-008 from
+    link the object fills in the entry, and the adjacency's own link bound to the list's owner, no property values.
+    On the Schemas tab (CAP-009), an owned object's chip anchors at its ownership relation: the link it fills, and
+    the other bound to its owner (the last step before it on its ownership path), so the arrows step along its row.
+    A singleton's chip, the Objects and Relations tabs' chips and a crumb open a single object inspector. The siblings are read through CAP-008 from
     the first bound link whose object's schema names an adjacency to the relation through it (the views the adjacency
     list already read, kept by `Service`), its entries matched against the other link and property bindings, each
     object once, in CAP-021's order; none where no bound link has such an adjacency (a service view of a relation's

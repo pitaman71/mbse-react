@@ -4,13 +4,26 @@
 
 import { adjacencies, appObjectSchemas, appRelations, browsableSchemas, description, singleton, singletonSchemas }
   from "../data/schemas.js";
-import type { EntryView, ObjectView } from "../data/views.js";
+import { type EntryView, type ObjectView, ownership } from "../data/views.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
+import type { RelationAnchor } from "./navigation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
-/** The chips of one schema's extent, as a row (CAP-009). */
+/** CAP-023: where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
+ * the other bound to its owner, the last step before it on its ownership path. None for a singleton. */
+function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAnchor | undefined {
+  const own = adjacencies(store, schema).find((a) => a.owner);
+  const path = ownership(store, object.key);
+  const owner = path[path.length - 2];
+  return own === undefined || own.link === undefined || owner === undefined ? undefined
+    : { relation: own.relation, link: own.me, links: { [own.link]: { key: owner.key, schema: owner.schema } },
+      properties: {} };
+}
+
+/** The chips of one schema's extent, as a row (CAP-009); each owned object's opens a relation inspector anchored at
+ * its ownership relation (CAP-023), so that its arrows step along its owner's objects. */
 function Extent({ schema }: { readonly schema: string }) {
   const service = useService();
   const chips = useLoad(() => service.chips(schema), [service, schema]);
@@ -20,7 +33,9 @@ function Extent({ schema }: { readonly schema: string }) {
   return (
     <div className={s.chipRow} role="list">
       {chips.value.map((object) => (
-        <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} /></div>
+        <div role="listitem" key={object.key}>
+          <ObjectChip object={object} showSchema={false} anchor={ownedAnchor(service.store, schema, object)} />
+        </div>
       ))}
     </div>
   );

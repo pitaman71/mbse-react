@@ -32,8 +32,11 @@ function useScrolled<T extends HTMLElement>(current: boolean) {
   return ref;
 }
 
-/** An object's chip, inspected on a click; scrolled into view when it is the one inspected (auto scrolling). */
-export function ObjectChip({ object, showSchema = true }: { readonly object: ObjectView; readonly showSchema?: boolean }) {
+/** An object's chip, inspected on a click (with an anchor, in a relation inspector, CAP-023); scrolled into view when
+ * it is the one inspected (auto scrolling). */
+export function ObjectChip({ object, showSchema = true, anchor }: {
+  readonly object: ObjectView; readonly showSchema?: boolean; readonly anchor?: RelationAnchor | undefined;
+}) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
   const ref = useScrolled<HTMLButtonElement>(current);
@@ -44,7 +47,7 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
       className={s.chip}
       aria-current={current}
       data-key={object.key}
-      onClick={() => inspect({ key: object.key, schema: object.schema })}
+      onClick={() => inspect({ key: object.key, schema: object.schema, anchor })}
     >
       <div className={s.chipLabel} title={object.label}><Markdown text={object.label} inline /></div>
       {showSchema && object.schema !== undefined && <div className={s.chipSchema}>{object.schema}</div>}

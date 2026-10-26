@@ -191,6 +191,28 @@ describe("the relation inspector (CAP-023)", () => {
     expect(within(inspector).queryByRole("button", { name: /^(Previous|Next)/ })).toBeNull();
   });
 
+  test("on the Schemas tab, an owned object's chip anchors at its ownership relation: arrows along its row", async () => {
+    renderApp();
+    await userEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    const tasks = await screen.findByRole("region", { name: "work.Task" });
+    await userEvent.click(await within(tasks).findByText("Install the schemas"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" });
+    const next = await within(inspector).findByRole("button", { name: "Next in work.InTasks" });
+    expect(within(inspector).queryByRole("button", { name: /^Previous/ })).toBeNull();
+    await userEvent.click(next);
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Seed the demo" })).toBeInTheDocument();
+    expect(within(tasks).getByText("Seed the demo").closest("button")).toHaveAttribute("aria-current", "true");
+    await userEvent.click(await within(inspector).findByRole("button", { name: "Previous in work.InTasks" }));
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
+    // the Objects tab's chips are unchanged for now: a single object inspector
+    await userEvent.click(screen.getByRole("tab", { name: "Objects" }));
+    const objects = await screen.findByRole("region", { name: "work.Tasks" });
+    await userEvent.click(await within(objects).findByText("Seed the demo"));
+    await within(inspector).findByRole("heading", { level: 2, name: "Seed the demo" });
+    expect(within(inspector).queryByRole("button", { name: /^(Previous|Next)/ })).toBeNull();
+  });
+
   test("the sibling context: the entries agreeing with the anchor's link and property bindings", async () => {
     const s = service();
     const goal = await keyIn(s, "detail-goal");
