@@ -118,7 +118,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
     service's views have changed (every view kept is dropped).
 28. **Adjacencies only in a detail** (CAP-019, as revised): an object's adjacency lists are the end of its detail, in
-    its schema's order, each a grid of chips (decision 33); no list is nested under a chip. A deeper level is a click away: a topic's
+    its schema's order, each a row of chips (decisions 33, 36); no list is nested under a chip. A deeper level is a click away: a topic's
     detail ends with its threads, a thread's (inspected) with its replies. (First built as nesting one level deep
     under each linked chip, which the user found confusing: "Showing comments *under* the chip is doubly so.")
 29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
@@ -163,3 +163,8 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     entries under arbitrary bindings would lift that; not built). The footer shows "Previous in {relation}" and
     "Next in {relation}" as arrow icon buttons, at its start and end, only where that sibling exists and only out of
     editing; stepping keeps the anchor and no history.
+36. **Lists of chips scroll sideways** rather than wrap (FEA-004): every list of chips, a browser's (the Schemas and
+    Objects tabs' sections, the Relations tab's entry rows) and the inspector's adjacency lists, is one row
+    (`chipRow`), scrolled sideways where it overflows, snapping to its chips. A chip is at most 18rem wide, an
+    adjacency's 24rem (it holds an entry's properties beside a pill), an entry row's 16rem; on a narrow screen each is
+    at most 85% of the row, so that the next one shows and the row reads as scrollable.

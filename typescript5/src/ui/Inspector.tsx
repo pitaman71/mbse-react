@@ -107,7 +107,7 @@ function AdjacencyList({ owner, reference, adjacency, entries, refresh }: {
       </h3>
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
-      <div className={s.chipGrid}>
+      <div className={`${s.chipRow} ${s.adjacentRow}`}>
         {shown.map(({ object, entry }) => <AdjacentChip key={`${entry.key} ${object.key}`} object={object} entry={entry}
           anchor={anchorOf(owner, adjacency, object, entry)} />)}
       </div>
@@ -123,7 +123,7 @@ function EntriesByRelation({ detail }: { readonly detail: DetailView }) {
   return relations.map((relation) => (
     <section key={relation} className={s.section} aria-label={relation}>
       <h3 className={s.sectionTitle}>{relation}</h3>
-      <div className={s.chipGrid}>
+      <div className={`${s.chipRow} ${s.adjacentRow}`}>
         {detail.entries.filter((e) => e.relation === relation).flatMap((entry) => entry.links
           .filter((l) => l.object.key !== detail.object.key)
           .map((l) => <AdjacentChip key={`${entry.key} ${l.link}`} object={l.object} entry={entry} />))}
