@@ -128,3 +128,6 @@ export const editable = css({
   cursor: "text", borderRadius: 4, "&:hover, &:focus-visible": { outline: "1px dashed var(--accent)", outlineOffset: 2 },
 });
 export const markdown = css({ "& > :first-child": { marginTop: 0 }, "& > :last-child": { marginBottom: 0 } });
+export const checkboxField = css({
+  display: "flex !important", alignItems: "center", gap: "0.5rem", "& input": { width: "1.1rem", height: "1.1rem" },
+});

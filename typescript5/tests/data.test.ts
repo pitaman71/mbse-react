@@ -4,7 +4,7 @@ import { Builders } from "@mbse/schemas/Framework";
 import { Client } from "@mbse/rest/Services/Rest/Client";
 import { describe, expect, test } from "vitest";
 import { corpusFetch, NO_CASE } from "../src/data/corpus.js";
-import { adjacencies, appObjectSchemas, browsableSchemas, schemaOfLink, schemasOfLink, textProperties } from "../src/data/schemas.js";
+import { adjacencies, appObjectSchemas, browsableSchemas, editableProperties, schemaOfLink, schemasOfLink, textProperties } from "../src/data/schemas.js";
 import { Service } from "../src/data/views.js";
 
 const service = (): Service => new Service(new Client("http://corpus", corpusFetch));
@@ -58,6 +58,14 @@ describe("schemas", () => {
     expect(textProperties(s.store, "work.TaskDirectory")).toEqual([]);
   });
 
+  test("CAP-022: the editable properties, text and booleans, of an object schema and of a relation's entries", async () => {
+    const s = service();
+    await s.schemas();
+    expect(editableProperties(s.store, "work.Comment")).toEqual([
+      { name: "text", kind: "text" }, { name: "resolves_thread", kind: "bool" }]);
+    expect(editableProperties(s.store, "work.Plans").map((f) => f.name)).toEqual(["original", "forecast", "completed"]);
+  });
+
   test("adjacencies and the schemas their links fill", async () => {
     const s = service();
     await s.schemas();
@@ -76,10 +84,11 @@ describe("views", () => {
   test("CAP-006: chips, in frame order, with CAP-005's fallback label", async () => {
     const s = service();
     expect((await s.chips("work.Task")).map((o) => o.label)).toEqual(["Install the schemas", "Seed the demo"]);
-    const [comment] = await s.chips("work.Comment");
-    expect(comment!.label).toBe("work.Comment CMT-001");
-    expect(comment!.summary).toBe("");
-    expect([...comment!.properties]).toEqual([["text", "Should chips show adjacencies?"], ["resolved", false]]);
+    const [thread, , resolving] = await s.chips("work.Comment");
+    expect(thread!.label).toBe("work.Comment CMT-001");
+    expect(thread!.summary).toBe("");
+    expect([...thread!.properties]).toEqual([["text", "Should chips show adjacencies?"]]);
+    expect([...resolving!.properties]).toEqual([["text", "Agreed, *no adjacencies* on chips."], ["resolves_thread", true]]);
   });
 
   test("a view the corpus does not hold is refused", async () => {

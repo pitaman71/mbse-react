@@ -3,10 +3,11 @@
  * named adjacency lists its linked objects' chips (CAP-008). */
 
 import { useEffect, useRef, useState } from "react";
-import { adjacencies, type Adjacency, textProperties } from "../data/schemas.js";
+import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
+import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
 import { type Target, useNavigation } from "./navigation.js";
 import { useService } from "./service.js";
@@ -105,7 +106,7 @@ function Detail({ target, detail, onEdit }: {
             {[...detail.object.properties].map(([name, value]) => (
               <div key={name} style={{ display: "contents" }}>
                 <dt>{name}</dt>
-                <dd><Editable onEdit={onEdit}><div className={s.markdown}><Value value={value} /></div></Editable></dd>
+                <dd><Editable onEdit={onEdit}><div className={s.markdown}><Value value={value} name={name} /></div></Editable></dd>
               </div>
             ))}
           </dl>
@@ -125,28 +126,20 @@ function Detail({ target, detail, onEdit }: {
   );
 }
 
-/** CAP-014's editor: one text area per text property of the object's schema, each starting from what it holds. */
-function Editor({ names, draft, onChange, disabled, error }: {
-  readonly names: readonly string[]; readonly draft: Readonly<Record<string, string>>;
-  readonly onChange: (name: string, text: string) => void; readonly disabled: boolean; readonly error?: Error;
+/** The object's editor (CAP-014, CAP-022): a field per editable property of its schema, from what it holds. */
+function Editor({ fields, draft, onChange, disabled, error }: {
+  readonly fields: readonly Field[]; readonly draft: Draft;
+  readonly onChange: (name: string, value: string | boolean) => void; readonly disabled: boolean; readonly error?: Error;
 }) {
   return (
     <form className={s.editor} aria-label="edit" onSubmit={(e) => e.preventDefault()}>
-      {names.map((name) => (
-        <label key={name}>
-          <span className={s.editorName}>{name}</span>
-          <textarea className={s.textarea} name={name} value={draft[name] ?? ""} disabled={disabled}
-            onChange={(e) => onChange(name, e.target.value)} />
-        </label>
-      ))}
+      <Fields fields={fields} draft={draft} onChange={onChange} disabled={disabled} />
       {error !== undefined && <Failure error={error} />}
     </form>
   );
 }
 
 type Mode = "view" | "edit" | "save";
-
-const textOf = (value: unknown): string => (typeof value === "string" ? value : "");
 
 /** The panel: hidden until an object is inspected; each inspection clears it, shows loading, and fetches the detail.
  * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
@@ -165,7 +158,7 @@ export function Inspector() {
   }, [service, target?.key, target?.schema]);
   const [edited, setEdited] = useState<DetailView | undefined>(undefined);
   const [mode, setMode] = useState<Mode>("view");
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<Draft>({});
   const [failed, setFailed] = useState<Error | undefined>(undefined);
   useEffect(() => {
     body.current?.scrollTo?.({ top: 0 });
@@ -173,16 +166,15 @@ export function Inspector() {
   }, [target?.key]);
   if (target === undefined) return null;
   const detail = edited ?? (loaded.state === "done" ? loaded.value : undefined);
-  const names = detail !== undefined && target.schema !== undefined ? textProperties(service.store, target.schema) : [];
-  const edit = names.length === 0 ? undefined : () => {
-    setDraft(Object.fromEntries(names.map((name) => [name, textOf(detail!.values.get(name))])));
+  const fields = detail !== undefined && target.schema !== undefined ? editableProperties(service.store, target.schema) : [];
+  const edit = fields.length === 0 ? undefined : () => {
+    setDraft(draftOf(fields, detail!.values));
     setFailed(undefined);
     setMode("edit");
   };
   const save = async (): Promise<void> => {
     if (detail === undefined) return;
-    const changed = Object.fromEntries(names.filter((name) => (draft[name] ?? "") !== textOf(detail.values.get(name)))
-      .map((name) => [name, draft[name] === "" ? null : draft[name]]));
+    const changed = changes(fields, draft, detail.values);
     if (Object.keys(changed).length === 0) { setMode("view"); return; }
     const key = target.key;
     setMode("save");
@@ -216,8 +208,8 @@ export function Inspector() {
         {loaded.state === "error" && edited === undefined && <Failure error={loaded.error} />}
         {detail !== undefined && (mode === "view"
           ? <Detail target={target} detail={detail} onEdit={edit} />
-          : <Editor names={names} draft={draft} disabled={mode === "save"} error={failed}
-            onChange={(name, text) => setDraft((d) => ({ ...d, [name]: text }))} />)}
+          : <Editor fields={fields} draft={draft} disabled={mode === "save"} error={failed}
+            onChange={(name, value) => setDraft((d) => ({ ...d, [name]: value }))} />)}
       </div>
       <footer className={s.inspectorActions}>
         {mode === "view" ? (

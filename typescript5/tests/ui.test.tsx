@@ -178,3 +178,21 @@ describe("editing text as markdown (CAP-014)", () => {
     expect(sent).toEqual([]);
   });
 });
+
+describe("booleans as checkboxes (CAP-022)", () => {
+  test("a reply's resolves_thread: a checkbox read in view mode, written in edit mode", async () => {
+    renderApp();
+    await userEvent.click(await screen.findByText("work.Comment CMT-003"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    const shown = await within(inspector).findByRole("checkbox", { name: "resolves_thread" });
+    expect(shown).toBeChecked();
+    expect(shown).toBeDisabled();
+    await userEvent.click(within(inspector).getByRole("button", { name: "Edit" }));
+    const field = within(within(inspector).getByRole("form", { name: "edit" })).getByRole("checkbox", { name: "resolves_thread" });
+    expect(field).toBeEnabled();
+    await userEvent.click(field);
+    expect(field).not.toBeChecked();
+    await userEvent.click(within(inspector).getByRole("button", { name: "Cancel" }));
+    expect(await within(inspector).findByRole("checkbox", { name: "resolves_thread" })).toBeChecked();
+  });
+});

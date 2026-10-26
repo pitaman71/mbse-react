@@ -98,3 +98,10 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     entry anywhere; navigating to another object discards an unsaved draft.
 23. **Against the corpus**, only the edits it holds are accepted (`edit-task-title`, `edit-task-clear`); any other is
     refused (599), as any view the corpus lacks is.
+
+### Comments: CAP-022 and CAP-018 to CAP-021 (decided by the agent, for review)
+
+24. **Booleans as checkboxes** (CAP-022): a `Schemas.OfBool` value is a read-only checkbox in view mode, labelled by
+    its property's name, and a checkbox in the editor; an absent boolean reads as unchecked, and is written only where
+    the user changes it. The editor's fields (`Fields`) are shared by the object inspector and the adjacency
+    inspector, and `editableProperties` gives them for an object schema or a relation's entries.

@@ -99,3 +99,24 @@ export function textProperties(store: any, name: string): string[] {
   if (!(properties instanceof Map)) return [];
   return [...properties].filter(([, p]: [string, any]) => p?.schema?.name === "Schemas.OfStr").map(([n]) => n);
 }
+
+/** A property the UI edits, and how: text as markdown (CAP-014), a boolean as a checkbox (CAP-022). */
+export interface Field {
+  readonly name: string;
+  readonly kind: "text" | "bool";
+}
+
+const KINDS: Readonly<Record<string, Field["kind"]>> = { "Schemas.OfStr": "text", "Schemas.OfBool": "bool" };
+
+/** The properties of an object schema, or of a relation's entries, that the UI edits, in the schema's order: those
+ * whose schema is `Schemas.OfStr` or `Schemas.OfBool`. An ownership key is an entry's property, never the object's,
+ * so none is among an object's. */
+export function editableProperties(store: any, name: string): Field[] {
+  const s = schema(store, name);
+  const properties = s?.properties ?? s?.entry?.properties;
+  if (!(properties instanceof Map)) return [];
+  return [...properties].flatMap(([n, p]: [string, any]) => {
+    const kind = KINDS[String(p?.schema?.name)];
+    return kind === undefined ? [] : [{ name: n, kind }];
+  });
+}

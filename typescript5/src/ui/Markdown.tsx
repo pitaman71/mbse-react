@@ -10,7 +10,10 @@ export function Markdown({ text, inline = false }: { readonly text: string; read
     : <ReactMarkdown>{text}</ReactMarkdown>;
 }
 
-/** A property's value: text as markdown, anything else in full. */
-export function Value({ value, inline = false }: { readonly value: unknown; readonly inline?: boolean }) {
+/** A property's value: text as markdown (CAP-014), a boolean as a checkbox (CAP-022), anything else in full. */
+export function Value({ value, inline = false, name }: {
+  readonly value: unknown; readonly inline?: boolean; readonly name?: string;
+}) {
+  if (typeof value === "boolean") return <input type="checkbox" checked={value} readOnly disabled aria-label={name} />;
   return typeof value === "string" ? <Markdown text={value} inline={inline} /> : <>{full(value)}</>;
 }
