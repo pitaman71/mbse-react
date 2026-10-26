@@ -112,10 +112,10 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     relation's entries; only what the user filled is sent (`Service.propose`, mbse-rest's `client.propose`).
 27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
     service's views have changed (every view kept is dropped).
-28. **Nesting** (CAP-019): a top-level list's linked objects show their own adjacencies one level deep, those that
-    are to-many (no `unique` clause lets the object determine the rest), not ownership adjacencies, and not the
-    relation they were reached through: a topic's threads show their replies, and a reply's one thread is not shown
-    again. A nested list's count is what it loaded.
+28. **Adjacencies only in a detail** (CAP-019, as revised): an object's adjacency lists are the end of its detail, in
+    its schema's order, each a row of chips; no list is nested under a chip. A deeper level is a click away: a topic's
+    detail ends with its threads, a thread's (inspected) with its replies. (First built as nesting one level deep
+    under each linked chip, which the user found confusing: "Showing comments *under* the chip is doubly so.")
 29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
 30. **The tab's session** (CAP-015): an id made once per browser tab and kept for its life (`sessionStorage`), the
     browser's locale (`navigator.language`) and a kind of device (`touch` or `desktop`, by its pointer), given to a

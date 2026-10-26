@@ -197,19 +197,27 @@ describe("booleans as checkboxes (CAP-022)", () => {
   });
 });
 
-describe("adjacencies: nested lists (CAP-019) and proposals (CAP-018)", () => {
-  test("a topic's threads, each with its replies; no + on an ownership adjacency", async () => {
+describe("adjacencies at the end of a detail (CAP-019), and proposals (CAP-018)", () => {
+  /** The inspector's adjacency sections, in order: every region of its body but its properties. */
+  const sections = (inspector: HTMLElement): string[] =>
+    within(inspector).getAllByRole("region").map((r) => r.getAttribute("aria-label") ?? "")
+      .filter((name) => name !== "properties");
+
+  test("a topic's detail ends with its threads, nothing nested under a chip; a thread's ends with its replies", async () => {
     renderApp();
     await userEvent.click(await screen.findByText("Logical view as chip"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
-    // the capability's own comments; its feature's comments are nested in its feature list too (CAP-019)
-    await within(inspector).findAllByText("work.Comment CMT-001");
-    const comments = within(inspector).getAllByRole("region", { name: "comments" })
-      .find((r) => within(r).queryByText("work.Comment CMT-001") !== null)!;
-    const replies = await within(comments).findByRole("region", { name: "replies" });
+    const comments = await within(inspector).findByRole("region", { name: "comments" });
+    expect(sections(inspector).at(-1)).toBe("comments");
+    expect(await within(comments).findByText("work.Comment CMT-001")).toBeInTheDocument();
+    expect(within(comments).queryAllByRole("region")).toEqual([]);  // no list under a chip
+    expect(within(inspector).queryByRole("button", { name: "Add to directory" })).toBeNull();
+    await userEvent.click(within(comments).getByText("work.Comment CMT-001"));
+    const thread = screen.getByRole("complementary", { name: "inspector" });
+    const replies = await within(thread).findByRole("region", { name: "replies" });
+    expect(sections(thread).at(-1)).toBe("replies");
     expect(await within(replies).findByText("work.Comment CMT-002")).toBeInTheDocument();
     expect(within(replies).getByText("work.Comment CMT-003")).toBeInTheDocument();
-    expect(within(inspector).queryByRole("button", { name: "Add to directory" })).toBeNull();
   });
 
   test("+ on a thread's replies proposes a reply, committed in one transaction", async () => {
@@ -219,7 +227,7 @@ describe("adjacencies: nested lists (CAP-019) and proposals (CAP-018)", () => {
       return corpusFetch(input, init);
     };
     renderApp(new Service(new Client("http://corpus", watched)));
-    await userEvent.click(await screen.findByText("Logical view as chip"));
+    await userEvent.click(await screen.findByText("work.Comment CMT-001"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
     const replies = await within(inspector).findByRole("region", { name: "replies" });
     await userEvent.click(within(replies).getByRole("button", { name: "Add to replies" }));
@@ -238,9 +246,8 @@ describe("provenance (CAP-020) and creation order (CAP-021)", () => {
     renderApp();
     await userEvent.click(await screen.findByText("Logical view as chip"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
-    await within(inspector).findAllByText("work.Comment CMT-001");
-    const comments = within(inspector).getAllByRole("region", { name: "comments" })
-      .find((r) => within(r).queryByText("work.Comment CMT-001") !== null)!;
+    const comments = await within(inspector).findByRole("region", { name: "comments" });
+    await within(comments).findByText("work.Comment CMT-001");
     const [byline] = within(comments).getAllByLabelText("provenance");
     expect(byline).toHaveTextContent("created by unknown");
     expect(byline!.querySelector("time")).toHaveAttribute("dateTime", "2026-10-26T14:30:05Z");
