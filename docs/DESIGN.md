@@ -140,3 +140,8 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     `{identity} @ {datestamp}`; no byline sits outside the chip. The object's other properties wait for its detail.
     (First built as the object's chip beside its entry's, which read as two things for one: "why are there two chips
     but one thingy?"; then with the byline under the chip, "disembodied from the pill".)
+34. **The ownership path is a breadcrumb** (CAP-019): an owned object's inspector header shows its path, read from its
+    reference, as `singleton › key › …`: its singleton's name, then each owning entry's key values, itself last; each
+    ancestor is inspected on a click (a singleton with its directory schema; a deeper owner, were there one, with no
+    schema known). The ownership adjacency (an adjacency marked `owner`) gets no list in the detail. A singleton has
+    no breadcrumb.

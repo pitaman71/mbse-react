@@ -142,6 +142,28 @@ describe("the inspector (FEA-005)", () => {
   });
 });
 
+describe("the ownership path as a breadcrumb", () => {
+  test("an owned object's header shows its path; no ownership list; its singleton a click away", async () => {
+    renderApp();
+    await userEvent.click(await screen.findByText("Install the schemas"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" });
+    const crumbs = within(inspector).getByRole("navigation", { name: "ownership" });
+    expect(crumbs).toHaveTextContent("work.Tasks › TSK-001");
+    expect(within(crumbs).getByText("TSK-001")).toHaveAttribute("aria-current", "page");
+    await waitFor(() => expect(within(inspector).queryAllByRole("status")).toEqual([]));
+    expect(within(inspector).queryByRole("region", { name: "directory" })).toBeNull();
+    await userEvent.click(within(crumbs).getByRole("button", { name: "work.Tasks" }));
+    const directory = screen.getByRole("complementary", { name: "inspector" });
+    expect(await within(directory).findByRole("heading", { level: 2, name: "work.TaskDirectory work.Tasks" }))
+      .toBeInTheDocument();
+    expect(within(directory).queryByRole("navigation", { name: "ownership" })).toBeNull(); // a singleton: no path
+    const tasks = await within(directory).findByRole("region", { name: "tasks" });
+    expect(await within(tasks).findByRole("button", { name: /TSK-002 : Seed the demo$/ })).toBeInTheDocument();
+    expect(within(directory).queryByRole("alert")).toBeNull();
+  });
+});
+
 describe("editing text as markdown (CAP-014)", () => {
   test("view, edit, save while the service commits, and view again with what it gave back", async () => {
     let release = (): void => undefined;

@@ -5,7 +5,7 @@
 
 import { Client, newStore, Views } from "@mbse/rest/Services/Rest/Client";
 import { JSON as J } from "@mbse/schemas/Framework";
-import { isFramework, schemaOfLink } from "./schemas.js";
+import { isFramework, schemaOfLink, singleton, singletonSchemas } from "./schemas.js";
 
 export type Frame = Views.Frame;
 
@@ -208,4 +208,39 @@ export class Service {
   reference(key: string): unknown {
     return J.FromJSON(this.store)(this.store.References.OfObject.as_schema(), key);
   }
+}
+
+/** One step of an object's ownership path: an object, by its key (`Views.keyOf`), named by its singleton's name or its
+ * owning entry's key values, and its schema where the UI knows it (a singleton's). */
+export interface Crumb {
+  readonly key: string;
+  readonly name: string;
+  readonly schema: string | undefined;
+}
+
+/** The object's ownership path, from its singleton to itself (FEA-003's identity): each object its path passes, the
+ * object itself last. A singleton's path is itself alone; an object whose key is not a path, empty. */
+export function ownership(store: any, key: string): Crumb[] {
+  let path: any;
+  try {
+    path = globalThis.JSON.parse(key)?.path;
+  } catch {
+    return [];
+  }
+  if (typeof path?.singleton !== "string") return [];
+  const keyAt = (steps: readonly any[]): string => {
+    let next: any = { target: {} };
+    for (const step of [...steps].reverse()) next = { entry: { ...step, next } };
+    const plain = { path: { singleton: path.singleton, next } };
+    return Views.keyOf(store, J.FromJSON(store)(store.References.OfObject.as_schema(), globalThis.JSON.stringify(plain)));
+  };
+  const crumbs: Crumb[] = [{ key: keyAt([]), name: path.singleton,
+    schema: singletonSchemas(store).find((name) => singleton(store, name) === path.singleton) }];
+  const steps: any[] = [];
+  for (let next = path.next; next?.entry !== undefined; next = next.entry.next) {
+    const { next: _, ...step } = next.entry;
+    steps.push(step);
+    crumbs.push({ key: keyAt(steps), name: Object.values(step.properties ?? {}).map(String).join(" "), schema: undefined });
+  }
+  return crumbs;
 }
