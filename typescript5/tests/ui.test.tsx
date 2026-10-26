@@ -130,6 +130,11 @@ describe("the inspector (FEA-005)", () => {
     // the inspector keeps no history: inspecting replaces what it shows, and it has no Back or Forward
     expect(within(inspector).queryByRole("button", { name: "Back" })).toBeNull();
     expect(within(inspector).queryByRole("button", { name: "Forward" })).toBeNull();
+    // Close is no longer in the header (only the breadcrumb's crumbs are); the footer holds Edit and Close, as icons
+    expect(within(inspector.querySelector("header")!).queryByRole("button", { name: "Close the inspector" })).toBeNull();
+    const footer = within(inspector.querySelector("footer")!);
+    expect(footer.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Edit", "Close the inspector"]);
+    expect(footer.getAllByRole("button").every((b) => b.querySelector("svg") !== null)).toBe(true);
   });
 });
 

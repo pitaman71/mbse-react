@@ -67,8 +67,10 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     holds the view alone; switching views replaces its entry. Inspecting an object replaces what the inspector shows;
     closing it clears it. Going up the ownership path is the breadcrumb's (decision 34); going along an adjacency, its
     pill's. An inspected object is neither in a shared link nor kept over a reload.
-13. **The inspector's actions** are Edit, or Cancel and Save while editing, kept at the bottom (FEA-005), the footer
-    left out where there is none; Close sits beside the label. (Back and Forward were removed with the history.)
+13. **The inspector's actions** are in its footer (FEA-005), centered side by side: Edit and Close, as icon buttons
+    (a pencil, a cross; each named and with a tooltip), or, while editing, Cancel, Save and Close, Close disabled
+    while saving. The footer's start and end are left for arrows, were Back and Forward ever enabled; with no history
+    (decision 12) there are none. The header holds the label, the breadcrumb and the byline, no button.
 14. **Responsive layout**: on a screen 900px wide or more the inspector, once revealed, takes 2 of 5 columns beside the
     browser (3 of 5); narrower, it covers the browser. Fonts scale from 14px to 18px with the width (`clamp`). Values
     are abbreviated to one line (40 characters in a chip, cut at a word, with an ellipsis and the full value as a
