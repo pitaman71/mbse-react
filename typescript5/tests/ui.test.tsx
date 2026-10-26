@@ -32,19 +32,24 @@ describe("navigation", () => {
 });
 
 describe("the object browser (CAP-010)", () => {
-  test("a section per schema; chips in frame order; every app schema's chips from the corpus", async () => {
-    renderApp();
-    const tasks = await screen.findByRole("region", { name: "work.Task" });
-    await within(tasks).findByText("Install the schemas");
-    expect(within(tasks).getAllByRole("listitem").map((li) => li.querySelector("div")!.textContent))
-      .toEqual(["Install the schemas", "Seed the demo"]);
-    const comments = screen.getByRole("region", { name: "work.Comment" });
-    expect(await within(comments).findByText("work.Comment CMT-001")).toBeInTheDocument();
-    expect(within(comments).getByText("Should chips show adjacencies?")).toBeInTheDocument();
-    const projects = screen.getByRole("region", { name: "work.Project" });
-    expect(await within(projects).findByText("Schema-driven visualization")).toBeInTheDocument();
-    expect(within(projects).queryByRole("alert")).toBeNull();
-  });
+  test("a section per singleton, holding its directory's objects' chips in frame order; no directory's own chip",
+    async () => {
+      renderApp();
+      const tasks = await screen.findByRole("region", { name: "work.Tasks" });
+      await within(tasks).findByText("Install the schemas");
+      expect(within(tasks).getAllByRole("listitem").map((li) => li.querySelector("div")!.textContent))
+        .toEqual(["Install the schemas", "Seed the demo"]);
+      const comments = screen.getByRole("region", { name: "work.Comments" });
+      expect(await within(comments).findByText("work.Comment CMT-001")).toBeInTheDocument();
+      expect(within(comments).getByText("Should chips show adjacencies?")).toBeInTheDocument();
+      const projects = screen.getByRole("region", { name: "work.Projects" });
+      expect(await within(projects).findByText("Schema-driven visualization")).toBeInTheDocument();
+      expect(within(projects).queryByRole("alert")).toBeNull();
+      for (const name of ["work.Task", "work.Project", "work.ProjectDirectory"]) {
+        expect(screen.queryByRole("region", { name })).toBeNull();
+      }
+      expect(screen.queryByText("work.Projects", { selector: "[role=listitem] *" })).toBeNull();
+    });
 });
 
 describe("the schema browser (CAP-009)", () => {

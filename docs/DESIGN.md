@@ -43,8 +43,10 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
    `References`) whose schema is marked `ref` (a reference object schema, singletons' included) and has a non-empty
    description. A schema's label is its registered name. Its chips are CAP-006 with `x` given the schema, in a row
    scrolled sideways.
-7. **CAP-010's sections**: one per object, grouped under its schema, the app's reference object schemas in the
-   store's order (the singleton directories included), each extent CAP-006 with `x` given the schema, in frame order.
+7. **CAP-010's sections** (revised for CAP-010's singletons): one per app schema that names a singleton, in the
+   store's order, headed by the singleton's name. Its chips are the objects the singleton holds: CAP-008 from the
+   singleton's reference (CAP-006 over its schema gives it) over each named adjacency but its ownership one, for each
+   schema the adjacency links; each object once, in frame order. The singleton's own chip is not shown.
 8. **CAP-011's entries** come from CAP-007 with `x` given each app schema (CONTRACT.md: `detail` takes a schema as
    `label` does), which holds every entry of each object's named adjacencies; each entry once, grouped by relation in
    the store's order, in the order met. Each linked object's chip is its CAP-006 chip from the object browser's views,

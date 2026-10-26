@@ -1,23 +1,24 @@
 /** The index site's browser views (FEA-004): schemas (CAP-009), objects (CAP-010) and relation entries (CAP-011), each a
- * large scrollable view of sections, populated from the chip view (CAP-006). Each schema's extent is loaded whole and
- * shown in frame order; counted objects never arrive (the service leaves them out, FEA-003). */
+ * large scrollable view of sections of chips (CAP-006): a schema's extent, or the objects a directory holds (CAP-008),
+ * each loaded whole and shown in frame order; counted objects never arrive (the service leaves them out, FEA-003). */
 
-import { appObjectSchemas, appRelations, browsableSchemas, description } from "../data/schemas.js";
+import { adjacencies, appObjectSchemas, appRelations, browsableSchemas, description, singleton, singletonSchemas }
+  from "../data/schemas.js";
 import type { EntryView, ObjectView } from "../data/views.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
-/** The chips of one schema's extent, as a row (CAP-009) or a grid (CAP-010). */
-function Extent({ schema, layout }: { readonly schema: string; readonly layout: "row" | "grid" }) {
+/** The chips of one schema's extent, as a row (CAP-009). */
+function Extent({ schema }: { readonly schema: string }) {
   const service = useService();
   const chips = useLoad(() => service.chips(schema), [service, schema]);
   if (chips.state === "loading") return <Loading />;
   if (chips.state === "error") return <Failure error={chips.error} />;
   if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
   return (
-    <div className={layout === "row" ? s.chipRow : s.chipGrid} role="list">
+    <div className={s.chipRow} role="list">
       {chips.value.map((object) => (
         <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} /></div>
       ))}
@@ -53,7 +54,7 @@ export function SchemaBrowser() {
           <section key={name} className={s.section} aria-label={name}>
             <h2 className={s.sectionTitle}>{name}</h2>
             <p className={s.muted}>{description(store, name)}</p>
-            <Extent schema={name} layout="row" />
+            <Extent schema={name} />
           </section>
         ));
       }}
@@ -61,14 +62,43 @@ export function SchemaBrowser() {
   );
 }
 
-/** CAP-010: a section per extant object, from its chip, grouped by schema in the store's order. */
+/** The objects a directory's singleton holds: CAP-008 over each of its named adjacencies but its ownership one, for
+ * each schema the adjacency links, each object once, in frame order. */
+async function held(service: ReturnType<typeof useService>, directory: string): Promise<ObjectView[]> {
+  const [root] = await service.chips(directory);
+  if (root === undefined) return [];
+  const views = await Promise.all(adjacencies(service.store, directory).filter((a) => !a.owner)
+    .flatMap((a) => a.linked.map((linked) => service.adjacency(root.reference, a.name, linked))));
+  const objects = new Map<string, ObjectView>();
+  for (const { object } of views.flat()) if (!objects.has(object.key)) objects.set(object.key, object);
+  return [...objects.values()];
+}
+
+/** The chips of the objects a directory's singleton holds, as a grid (CAP-010). */
+function Held({ directory }: { readonly directory: string }) {
+  const service = useService();
+  const chips = useLoad(() => held(service, directory), [service, directory]);
+  if (chips.state === "loading") return <Loading />;
+  if (chips.state === "error") return <Failure error={chips.error} />;
+  if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
+  return (
+    <div className={s.chipGrid} role="list">
+      {chips.value.map((object) => (
+        <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} /></div>
+      ))}
+    </div>
+  );
+}
+
+/** CAP-010: a section per schema that names a singleton, in the store's order, headed by the singleton's name; in
+ * each, the chips of the objects the singleton holds. */
 export function ObjectBrowser() {
   return (
     <WithSchemas>
-      {(store) => appObjectSchemas(store).map((name) => (
-        <section key={name} className={s.section} aria-label={name}>
-          <h2 className={s.sectionTitle}>{name}</h2>
-          <Extent schema={name} layout="grid" />
+      {(store) => singletonSchemas(store).map((name) => (
+        <section key={name} className={s.section} aria-label={singleton(store, name)}>
+          <h2 className={s.sectionTitle}>{singleton(store, name)}</h2>
+          <Held directory={name} />
         </section>
       ))}
     </WithSchemas>
