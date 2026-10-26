@@ -102,12 +102,11 @@ describe("the inspector (FEA-005)", () => {
     expect(screen.queryByRole("complementary", { name: "inspector" })).toBeNull();
   });
 
-  test("the detail view, its label at the top, adjacencies through CAP-008, and the inspector's own history", async () => {
+  test("the detail view, its label at the top, adjacencies through CAP-008, and no history", async () => {
     renderApp();
     const length = window.history.length;
     await userEvent.click(await screen.findByText("Demoable index site"));
     const inspector = await screen.findByRole("complementary", { name: "inspector" });
-    expect(within(inspector).getByRole("button", { name: "Back" })).toBeDisabled();
     expect(await within(inspector).findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
     expect(within(inspector).getByText("Browse and inspect the seeded project.")).toBeInTheDocument();
     // CAP-008, previewed (CAP-019): one chip per entry, its properties on the left and the linked object's pill,
@@ -128,17 +127,14 @@ describe("the inspector (FEA-005)", () => {
     expect(await within(inspector).findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
     expect(window.history.length).toBe(length);
     expect(window.location.hash).toBe("#/objects");
-    // the inspector's Back: the goal again; its Forward: the schedule again
-    expect(within(inspector).getByRole("button", { name: "Forward" })).toBeDisabled();
-    await userEvent.click(within(inspector).getByRole("button", { name: "Back" }));
-    expect(await within(inspector).findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
-    await userEvent.click(within(inspector).getByRole("button", { name: "Forward" }));
-    expect(await within(inspector).findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
-    // closing forgets the inspector's history
-    await userEvent.click(within(inspector).getByRole("button", { name: "Close the inspector" }));
-    await userEvent.click(await screen.findByText("Demoable index site"));
-    const reopened = await screen.findByRole("complementary", { name: "inspector" });
-    expect(within(reopened).getByRole("button", { name: "Back" })).toBeDisabled();
+    // the inspector keeps no history: inspecting replaces what it shows, and it has no Back or Forward
+    expect(within(inspector).queryByRole("button", { name: "Back" })).toBeNull();
+    expect(within(inspector).queryByRole("button", { name: "Forward" })).toBeNull();
+    // Close is no longer in the header (only the breadcrumb's crumbs are); the footer holds Edit and Close, as icons
+    expect(within(inspector.querySelector("header")!).queryByRole("button", { name: "Close the inspector" })).toBeNull();
+    const footer = within(inspector.querySelector("footer")!);
+    expect(footer.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Edit", "Close the inspector"]);
+    expect(footer.getAllByRole("button").every((b) => b.querySelector("svg") !== null)).toBe(true);
   });
 });
 

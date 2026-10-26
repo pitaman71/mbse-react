@@ -130,8 +130,17 @@ export const inspectorHead = css({
   borderBottom: "1px solid var(--line)",
 });
 export const inspectorLabel = css({ margin: 0, fontSize: "1.2rem", fontWeight: 600, overflowWrap: "anywhere", flex: 1 });
+/** The inspector's footer: three slots, its actions centered between the start and the end. */
 export const inspectorActions = css({
-  display: "flex", gap: "0.5rem", padding: "0.5rem 1rem", borderTop: "1px solid var(--line)",
+  display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem",
+  borderTop: "1px solid var(--line)",
+});
+export const inspectorActionsCenter = css({ gridColumn: 2, display: "flex", gap: "0.5rem", justifyContent: "center" });
+export const iconButton = css({
+  display: "inline-grid", placeItems: "center", width: "2.25rem", height: "2.25rem", padding: 0,
+  border: "1px solid var(--line)", background: "var(--surface)", color: "var(--text)", borderRadius: 6,
+  cursor: "pointer", "&:hover:not(:disabled), &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
+  "&:disabled": { opacity: 0.5, cursor: "default" },
 });
 export const button = css({
   border: "1px solid var(--line)", background: "var(--surface)", color: "var(--text)", borderRadius: 6,

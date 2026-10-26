@@ -170,6 +170,14 @@ function Breadcrumb({ target }: { readonly target: Target }) {
   );
 }
 
+/** A line icon, drawn in the text's color: an icon button's face. */
+function Icon({ path }: { readonly path: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>
+  );
+}
+
 function Detail({ target, detail, onEdit, refresh }: {
   readonly target: Target; readonly detail: DetailView; readonly onEdit?: () => void; readonly refresh: Refresh;
 }) {
@@ -222,7 +230,7 @@ type Mode = "view" | "edit" | "save";
  * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
  * value, then save mode while the service commits, and view mode again with what the service gives back. */
 export function Inspector() {
-  const { place, close, back, forward } = useNavigation();
+  const { place, close } = useNavigation();
   const service = useService();
   const target = place.inspect;
   const body = useRef<HTMLDivElement>(null);
@@ -280,8 +288,6 @@ export function Inspector() {
           <Breadcrumb target={target} />
           {detail !== undefined && <Byline object={detail.object} full />}
         </div>
-        <button type="button" className={s.button} onClick={close} disabled={mode === "save"}
-          aria-label="Close the inspector">✕</button>
       </header>
       <div ref={body} className={s.scroller} key={target.key}>
         {loaded.state === "loading" && edited === undefined && <Loading />}
@@ -292,23 +298,30 @@ export function Inspector() {
             onChange={(name, value) => setDraft((d) => ({ ...d, [name]: value }))} />)}
       </div>
       <footer className={s.inspectorActions}>
-        {mode === "view" ? (
-          <>
-            <button type="button" className={s.button} onClick={back} disabled={back === undefined}>Back</button>
-            <button type="button" className={s.button} onClick={forward} disabled={forward === undefined}>Forward</button>
-            {edit !== undefined && <button type="button" className={s.button} onClick={edit}>Edit</button>}
-          </>
-        ) : (
-          <>
-            <button type="button" className={s.button} onClick={() => setMode("view")} disabled={mode === "save"}>
-              Cancel
-            </button>
-            <button type="button" className={s.button} onClick={() => { void save(); }} disabled={mode === "save"}
-              aria-busy={mode === "save"}>
-              {mode === "save" ? "Saving…" : "Save"}
-            </button>
-          </>
-        )}
+        {/* left and right of the actions: where arrows for Back and Forward would go, had the inspector a history */}
+        <div className={s.inspectorActionsCenter}>
+          {mode === "view" ? (
+            edit !== undefined && (
+              <button type="button" className={s.iconButton} onClick={edit} aria-label="Edit" title="Edit">
+                <Icon path="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />
+              </button>
+            )
+          ) : (
+            <>
+              <button type="button" className={s.button} onClick={() => setMode("view")} disabled={mode === "save"}>
+                Cancel
+              </button>
+              <button type="button" className={s.button} onClick={() => { void save(); }} disabled={mode === "save"}
+                aria-busy={mode === "save"}>
+                {mode === "save" ? "Saving…" : "Save"}
+              </button>
+            </>
+          )}
+          <button type="button" className={s.iconButton} onClick={close} disabled={mode === "save"}
+            aria-label="Close the inspector" title="Close">
+            <Icon path="M6 6l12 12M18 6L6 18" />
+          </button>
+        </div>
       </footer>
     </aside>
   );

@@ -14,7 +14,7 @@ restating them.
 | `data/views.ts` | `Service`: the client and a store holding the app's schemas; each view requested with `Views.request` and shaped from frames with the client's readers (`Views.label`, `summary`, `chip`, `entryLabel`, `entryProperties`) |
 | `ui/Browsers.tsx` | CAP-009, CAP-010, CAP-011 |
 | `ui/Inspector.tsx` | FEA-005, with CAP-007's detail and CAP-008's adjacency lists |
-| `ui/navigation.tsx` | The current view, kept in the address bar, and the inspector's own history |
+| `ui/navigation.tsx` | The current view, kept in the address bar, and the object inspected |
 | `ui/styles.ts` | Every style, in TypeScript (Emotion), and the responsive layout |
 | `config.ts` | The source: the corpus (default) or a live server (`MBSE_REST_URL`) |
 
@@ -63,12 +63,14 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     mbse-schemas finds a reference's schema from its path (`References._implied`), but privately; see the report.
 11. **The inspector's properties** are those besides its label's and its summary's (`Views.chip` over the detail
     frame), since the label is pinned at the top and the summary shown under it.
-12. **The inspector's history is its own** (revised: it was the browser's). The address bar's hash holds the view
-    alone; switching views replaces its entry. The inspector keeps the objects inspected in a history of its own,
-    never the browser's: inspecting another object pushes onto it, dropping what lay ahead; the inspector's Back and
-    Forward move along it, each disabled at its end; closing the inspector forgets it. An inspected object is
-    therefore neither in a shared link nor kept over a reload.
-13. **The inspector's actions** are Back and Forward, kept at the bottom (FEA-005); Close sits beside the label.
+12. **The inspector keeps no history** (revised twice: it was the browser's, then its own). The address bar's hash
+    holds the view alone; switching views replaces its entry. Inspecting an object replaces what the inspector shows;
+    closing it clears it. Going up the ownership path is the breadcrumb's (decision 34); going along an adjacency, its
+    pill's. An inspected object is neither in a shared link nor kept over a reload.
+13. **The inspector's actions** are in its footer (FEA-005), centered side by side: Edit and Close, as icon buttons
+    (a pencil, a cross; each named and with a tooltip), or, while editing, Cancel, Save and Close, Close disabled
+    while saving. The footer's start and end are left for arrows, were Back and Forward ever enabled; with no history
+    (decision 12) there are none. The header holds the label, the breadcrumb and the byline, no button.
 14. **Responsive layout**: on a screen 900px wide or more the inspector, once revealed, takes 2 of 5 columns beside the
     browser (3 of 5); narrower, it covers the browser. Fonts scale from 14px to 18px with the width (`clamp`). Values
     are abbreviated to one line (40 characters in a chip, cut at a word, with an ellipsis and the full value as a
