@@ -29,6 +29,17 @@ export function appObjectSchemas(store: any): string[] {
   return schemaNames(store).filter((name) => !isFramework(name) && isReferenceObject(schema(store, name)));
 }
 
+/** CAP-010: the app's reference object schemas that name a singleton (the directories), in the store's order. */
+export function singletonSchemas(store: any): string[] {
+  return appObjectSchemas(store).filter((name) => typeof schema(store, name)?.singleton === "string");
+}
+
+/** A schema's singleton name, or "" where it names none. */
+export function singleton(store: any, name: string): string {
+  const n: unknown = schema(store, name)?.singleton;
+  return typeof n === "string" ? n : "";
+}
+
 /** A schema's description, or "" where it has none. */
 export function description(store: any, name: string): string {
   const d: unknown = schema(store, name)?.description;
@@ -85,10 +96,11 @@ export interface Adjacency {
   readonly toMany: boolean;
 }
 
-/** Whether `me` determines the relation's other links: some `unique(S)` clause holds every other link but not `me`. */
+/** Whether `me` determines the rest of an entry, its other links and its properties: some `unique(S)` clause holds all
+ * of them but not `me`. */
 function toOne(relation: any, me: string): boolean {
-  const links = [...(relation?.entry?.links?.keys?.() ?? [])].map(String);
-  const others = links.filter((l) => l !== me);
+  const names = [...(relation?.entry?.links?.keys?.() ?? []), ...(relation?.entry?.properties?.keys?.() ?? [])];
+  const others = names.map(String).filter((l) => l !== me);
   return [...(relation?.uniques ?? [])].some((clause: Iterable<unknown>) => {
     const names = new Set([...clause].map(String));
     return !names.has(me) && others.every((l) => names.has(l));
