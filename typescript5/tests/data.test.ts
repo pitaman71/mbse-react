@@ -4,7 +4,7 @@ import { Builders } from "@mbse/schemas/Framework";
 import { Client } from "@mbse/rest/Services/Rest/Client";
 import { describe, expect, test } from "vitest";
 import { corpusFetch, NO_CASE } from "../src/data/corpus.js";
-import { adjacencies, appObjectSchemas, browsableSchemas, schemaOfLink, schemasOfLink } from "../src/data/schemas.js";
+import { adjacencies, appObjectSchemas, browsableSchemas, schemaOfLink, schemasOfLink, textProperties } from "../src/data/schemas.js";
 import { Service } from "../src/data/views.js";
 
 const service = (): Service => new Service(new Client("http://corpus", corpusFetch));
@@ -48,6 +48,14 @@ describe("schemas", () => {
         ])]))]);
     });
     expect(browsableSchemas(store)).toEqual(["t.Described"]);
+  });
+
+  test("CAP-014: an object schema's text properties, in its order; a directory's key is not among them", async () => {
+    const s = service();
+    await s.schemas();
+    expect(textProperties(s.store, "work.Task")).toEqual(["title", "description"]);
+    expect(textProperties(s.store, "work.Comment")).toEqual(["text"]);
+    expect(textProperties(s.store, "work.TaskDirectory")).toEqual([]);
   });
 
   test("adjacencies and the schemas their links fill", async () => {

@@ -90,6 +90,9 @@ export function entryOf(store: any, frame: Frame, entry: unknown): EntryView {
  * of its named adjacencies. */
 export interface DetailView {
   readonly object: ObjectView;
+  /** Every property the object holds, its label's and summary's included, each its value: what an edit starts from
+   * (CAP-014). */
+  readonly values: ReadonlyMap<string, unknown>;
   readonly entries: readonly EntryView[];
 }
 
@@ -138,9 +141,23 @@ export class Service {
   /** CAP-007 of one object: every property it holds, and its named adjacencies' entries. */
   async detail(reference: unknown, schema?: string): Promise<DetailView> {
     const [frame] = await this.view("detail", { x: reference });
+    return this.detailOf(frame, schema);
+  }
+
+  /** CAP-014: writes `values` to the object's properties (`null` clears one), and gives its detail as the edit left
+   * it, once the service has committed it. Every view kept is dropped, since an edit may change any of them. */
+  async edit(reference: unknown, values: Readonly<Record<string, unknown>>, schema?: string): Promise<DetailView> {
+    await this.schemas();
+    const [frame] = await this.client.edit(this.store, reference, values);
+    this.frames.clear();
+    return this.detailOf(frame, schema);
+  }
+
+  private detailOf(frame: Frame | undefined, schema?: string): DetailView {
     if (frame === undefined) throw new Error("the service holds no such object");
     return {
       object: objectOf(this.store, frame, "x", schema),
+      values: Views.properties(this.store, frame, "x"),
       entries: frame.entries.map((entry) => entryOf(this.store, frame, entry)),
     };
   }

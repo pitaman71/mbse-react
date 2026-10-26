@@ -2,7 +2,7 @@
  * the browsers (FEA-004) and the inspector (FEA-005). */
 
 import { Client, Views } from "@mbse/rest/Services/Rest/Client";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 import { corpusFetch, response } from "../src/data/corpus.js";
@@ -125,5 +125,56 @@ describe("the inspector (FEA-005)", () => {
       await new Promise((resolve) => window.addEventListener("popstate", resolve, { once: true }));
     });
     expect(await screen.findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
+  });
+});
+
+describe("editing text as markdown (CAP-014)", () => {
+  test("view, edit, save while the service commits, and view again with what it gave back", async () => {
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    const gated = async (input: string, init?: RequestInit): Promise<Response> => {
+      if (typeof init?.body === "string" && init.body.includes("\"update\"")) await held; // the edit, not the views
+      return corpusFetch(input, init);
+    };
+    renderApp(new Service(new Client("http://corpus", gated)));
+    await userEvent.click(await screen.findByText("Install the schemas"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" });
+    await userEvent.click(within(inspector).getByRole("button", { name: "Edit" }));
+    const form = within(inspector).getByRole("form", { name: "edit" });
+    const title = within(form).getByRole("textbox", { name: "title" });
+    const description = within(form).getByRole("textbox", { name: "description" });
+    expect(title).toHaveValue("Install the schemas");
+    fireEvent.change(title, { target: { value: "Install the **schemas**" } });
+    fireEvent.change(description, { target: { value: "Define them in a *module-scope* `install`." } });
+    await userEvent.click(within(inspector).getByRole("button", { name: "Save" }));
+    // save mode: nothing can be changed or closed, and Save shows busy
+    expect(within(inspector).getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(title).toBeDisabled();
+    expect(within(inspector).getByRole("button", { name: "Close the inspector" })).toBeDisabled();
+    release();
+    // view mode again, the text read as markdown
+    const heading = await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" });
+    expect(heading.querySelector("strong")).toHaveTextContent("schemas");
+    expect(within(inspector).getByText("install", { selector: "code" })).toBeInTheDocument();
+    expect(within(inspector).getByRole("button", { name: "Edit" })).toBeEnabled();
+  });
+
+  test("a click on a value opens the editor; Cancel discards and sends nothing", async () => {
+    const sent: string[] = [];
+    const watched = async (input: string, init?: RequestInit): Promise<Response> => {
+      if (typeof init?.body === "string" && init.body.includes("\"update\"")) sent.push(init.body);
+      return corpusFetch(input, init);
+    };
+    renderApp(new Service(new Client("http://corpus", watched)));
+    await userEvent.click(await screen.findByText("Seed the demo"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await userEvent.click(await within(inspector).findByText("Write a small project for the browsers to show."));
+    const title = within(inspector).getByRole("textbox", { name: "title" });
+    fireEvent.change(title, { target: { value: "changed" } });
+    await userEvent.click(within(inspector).getByRole("button", { name: "Cancel" }));
+    expect(within(inspector).queryByRole("form", { name: "edit" })).toBeNull();
+    expect(within(inspector).getByRole("heading", { level: 2, name: "Seed the demo" })).toBeInTheDocument();
+    expect(sent).toEqual([]);
   });
 });

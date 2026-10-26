@@ -3,6 +3,7 @@
 
 import { useEffect, useRef } from "react";
 import type { EntryView, ObjectView } from "../data/views.js";
+import { Markdown } from "./Markdown.js";
 import { useNavigation } from "./navigation.js";
 import * as s from "./styles.js";
 import { abbreviate, full } from "./values.js";
@@ -38,9 +39,11 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
       data-key={object.key}
       onClick={() => inspect({ key: object.key, schema: object.schema })}
     >
-      <div className={s.chipLabel} title={object.label}>{object.label}</div>
+      <div className={s.chipLabel} title={object.label}><Markdown text={object.label} inline /></div>
       {showSchema && object.schema !== undefined && <div className={s.chipSchema}>{object.schema}</div>}
-      {object.summary !== "" && <p className={s.chipSummary} title={object.summary}>{object.summary}</p>}
+      {object.summary !== "" && (
+        <p className={s.chipSummary} title={object.summary}><Markdown text={object.summary} inline /></p>
+      )}
       <Properties properties={object.properties} />
     </button>
   );
