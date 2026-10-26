@@ -5,7 +5,7 @@
 
 import { Client, newStore, Views } from "@mbse/rest/Services/Rest/Client";
 import { JSON as J } from "@mbse/schemas/Framework";
-import { schemaOfLink } from "./schemas.js";
+import { isFramework, schemaOfLink } from "./schemas.js";
 
 export type Frame = Views.Frame;
 
@@ -24,6 +24,8 @@ export interface ObjectView {
   /** The other properties the frame assigns it, besides its label's and its summary's: a chip's (CAP-006), or every
    * other one a detail holds (CAP-007). */
   readonly properties: ReadonlyMap<string, unknown>;
+  /** CAP-020: who created it and when, and who last wrote it and when, where the frame carries it (CAP-015). */
+  readonly provenance: { readonly created?: Views.Written; readonly modified?: Views.Written };
 }
 
 /** A relation entry as a view shows it. */
@@ -40,6 +42,11 @@ export interface EntryView {
   readonly links: readonly { readonly link: string; readonly object: ObjectView }[];
 }
 
+/** The app's entries a frame carries: not the framework's, such as provenance's (CAP-015), which `Views.provenance`
+ * reads. */
+const appEntries = (store: any, frame: Frame): unknown[] =>
+  frame.entries.filter((entry) => !isFramework(Views.relationName(store, entry)));
+
 /** A frame that binds `symbol` to `reference`, so that the client's readers apply to any object the frame witnesses. */
 const rebound = (frame: Frame, reference: unknown, symbol = "x"): Frame =>
   ({ ...frame, binds: new Map([...frame.binds, [symbol, reference]]) });
@@ -55,6 +62,7 @@ export function objectOf(store: any, frame: Frame, symbol: string, schema?: stri
     label: Views.label(store, frame, symbol, schema),
     summary: Views.summary(store, frame, symbol),
     properties: Views.chip(store, frame, symbol),
+    provenance: Views.provenance(store, frame, reference),
   };
 }
 
@@ -170,7 +178,7 @@ export class Service {
     return {
       object: objectOf(this.store, frame, "x", schema),
       values: Views.properties(this.store, frame, "x"),
-      entries: frame.entries.map((entry) => entryOf(this.store, frame, entry)),
+      entries: appEntries(this.store, frame).map((entry) => entryOf(this.store, frame, entry)),
     };
   }
 
@@ -181,7 +189,7 @@ export class Service {
     const frames = await this.view("adjacency", { x: reference, y: this.store.registered(linked) }, adjacency);
     return frames.flatMap((frame) => {
       const object = objectOf(this.store, frame, "y", linked);
-      return frame.entries.map((entry) => ({ object, entry: entryOf(this.store, frame, entry) }));
+      return appEntries(this.store, frame).map((entry) => ({ object, entry: entryOf(this.store, frame, entry) }));
     });
   }
 
@@ -190,7 +198,7 @@ export class Service {
   async entries(schema: string): Promise<EntryView[]> {
     await this.schemas();
     const frames = await this.view("detail", { x: this.store.registered(schema) });
-    return frames.flatMap((frame) => frame.entries.map((entry) => entryOf(this.store, frame, entry)));
+    return frames.flatMap((frame) => appEntries(this.store, frame).map((entry) => entryOf(this.store, frame, entry)));
   }
 
   /** A `References.OfObject` read back from its key (`Views.keyOf`), as the address bar carries it. */

@@ -117,3 +117,14 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     relation they were reached through: a topic's threads show their replies, and a reply's one thread is not shown
     again. A nested list's count is what it loaded.
 29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
+30. **The tab's session** (CAP-015): an id made once per browser tab and kept for its life (`sessionStorage`), the
+    browser's locale (`navigator.language`) and a kind of device (`touch` or `desktop`, by its pointer), given to a
+    live service's client, which names the session in a header and writes the locale and device into each write.
+    Against the corpus no session is sent, so that requests stay the corpus's.
+31. **Provenance is read, not listed** (CAP-020): a frame's framework entries (`Provenance.*`) are kept out of the
+    detail's, the relation browser's and the adjacency lists' entries; `Views.provenance` reads them. The inspector
+    shows "created by … · when" and "edited by … · when" under the label; each linked object in an adjacency list,
+    "created by … · when". Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
+    browser leaves out `Parametrics` and `Provenance` with the other framework modules.
+32. **Creation order** (CAP-021): an adjacency list is sorted by creation time where every item it shows has one, and
+    kept in frame order otherwise; ties keep frame order.

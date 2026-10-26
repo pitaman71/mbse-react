@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from "react";
 import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
+import { Byline, byCreation } from "./Byline.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { changes, type Draft, draftOf, Fields } from "./Fields.js";
@@ -40,6 +41,7 @@ function Linked({ object, entry, children }: {
         <ObjectChip object={object} />
         {entry.properties.size > 0 && <EntryChip entry={entry} />}
       </div>
+      <Byline object={object} />
       {children}
     </div>
   );
@@ -118,7 +120,7 @@ function AdjacencyList({ reference, adjacency, entries, refresh, depth = 0 }: {
     return { views, errors, all: errors.length === settled.length };
   }, [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
   const fallback = entries.flatMap((entry) => others(entry, adjacency.me).map((object) => ({ object, entry })));
-  const shown = loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback;
+  const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
   const nested = (object: ObjectView): Adjacency[] => depth > 0 || object.schema === undefined ? []
     : adjacencies(service.store, object.schema).filter((a) => a.toMany && !a.owner && a.relation !== adjacency.relation);
   const Heading = depth === 0 ? "h3" : "h4";
@@ -282,6 +284,7 @@ export function Inspector() {
               : loaded.state === "error" ? "Not available" : "Loading…"}
           </h2>
           {target.schema !== undefined && <div className={s.chipSchema}>{target.schema}</div>}
+          {detail !== undefined && <Byline object={detail.object} full />}
         </div>
         <button type="button" className={s.button} onClick={close} disabled={mode === "save"}
           aria-label="Close the inspector">✕</button>

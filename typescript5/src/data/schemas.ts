@@ -5,7 +5,7 @@
 import { schemaNames } from "@mbse/rest/Services/Rest/Client";
 
 /** The framework's modules, whose schemas the schema browser leaves out (CAP-009). */
-export const FRAMEWORK_MODULES = ["Schemas", "Paths", "Mutations", "References"] as const;
+export const FRAMEWORK_MODULES = ["Schemas", "Paths", "Mutations", "References", "Parametrics", "Provenance"] as const;
 
 export const isFramework = (name: string): boolean =>
   (FRAMEWORK_MODULES as readonly string[]).includes(name.split(".")[0] ?? "");

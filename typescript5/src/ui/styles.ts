@@ -142,3 +142,9 @@ export const addButton = css({
   "&:hover, &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
 });
 export const formActions = css({ display: "flex", gap: "0.5rem", justifyContent: "flex-end" });
+
+/** CAP-020: an object's byline. */
+export const byline = css({
+  display: "flex", flexWrap: "wrap", gap: "0.25rem 0.75rem", fontSize: "0.8rem", color: "var(--muted)",
+  "& strong": { fontWeight: 600, color: "var(--text)" },
+});

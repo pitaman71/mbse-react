@@ -232,3 +232,21 @@ describe("adjacencies: nested lists (CAP-019) and proposals (CAP-018)", () => {
     expect(within(inspector).queryByRole("alert")).toBeNull();
   });
 });
+
+describe("provenance (CAP-020) and creation order (CAP-021)", () => {
+  test("a comment's inspector, and each linked comment, show who created it and when", async () => {
+    renderApp();
+    await userEvent.click(await screen.findByText("Logical view as chip"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await within(inspector).findAllByText("work.Comment CMT-001");
+    const comments = within(inspector).getAllByRole("region", { name: "comments" })
+      .find((r) => within(r).queryByText("work.Comment CMT-001") !== null)!;
+    const [byline] = within(comments).getAllByLabelText("provenance");
+    expect(byline).toHaveTextContent("created by unknown");
+    expect(byline!.querySelector("time")).toHaveAttribute("dateTime", "2026-10-26T14:30:05Z");
+    await userEvent.click(within(comments).getByText("work.Comment CMT-001"));
+    const header = await within(screen.getByRole("complementary", { name: "inspector" }))
+      .findByLabelText("provenance");
+    expect(header).toHaveTextContent("created by unknown");
+  });
+});
