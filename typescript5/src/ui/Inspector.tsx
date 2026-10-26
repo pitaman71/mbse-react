@@ -105,14 +105,13 @@ function AdjacencyList({ reference, adjacency, entries, refresh }: {
   const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
   return (
     <section className={s.section} aria-label={adjacency.name}>
-      <h3 className={s.sectionTitle}>
+      <h3 className={s.sectionTitle} title={adjacency.relation}>
         {adjacency.name} <span className={s.chipSchema}>({shown.length})</span>
         {adjacency.link !== undefined && adjacency.linked.length > 0 && !adjacency.owner && !proposing && (
           <button type="button" className={s.addButton} onClick={() => setProposing(true)}
             aria-label={`Add to ${adjacency.name}`}>+</button>
         )}
       </h3>
-      <p className={s.muted}>{adjacency.relation}</p>
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
       <div className={s.chipGrid}>
@@ -274,11 +273,10 @@ export function Inspector() {
     <aside className={s.inspector} aria-label="inspector">
       <header className={s.inspectorHead}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className={s.inspectorLabel}>
+          <h2 className={s.inspectorLabel} title={target.schema}>
             {label !== undefined ? <Markdown text={label} inline />
               : loaded.state === "error" ? "Not available" : "Loading…"}
           </h2>
-          {target.schema !== undefined && <div className={s.chipSchema}>{target.schema}</div>}
           <Breadcrumb target={target} />
           {detail !== undefined && <Byline object={detail.object} full />}
         </div>

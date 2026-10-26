@@ -153,6 +153,10 @@ describe("the ownership path as a breadcrumb", () => {
     expect(within(crumbs).getByText("TSK-001")).toHaveAttribute("aria-current", "page");
     await waitFor(() => expect(within(inspector).queryAllByRole("status")).toEqual([]));
     expect(within(inspector).queryByRole("region", { name: "directory" })).toBeNull();
+    // no subtitles naming the schema or a relation: the breadcrumb and the adjacency's name say as much
+    expect(within(inspector).queryByText("work.Task")).toBeNull();
+    expect(within(inspector).queryByText("work.HasTask")).toBeNull();
+    expect(within(inspector).getByRole("heading", { level: 2 })).toHaveAttribute("title", "work.Task");
     await userEvent.click(within(crumbs).getByRole("button", { name: "work.Tasks" }));
     const directory = screen.getByRole("complementary", { name: "inspector" });
     expect(await within(directory).findByRole("heading", { level: 2, name: "work.TaskDirectory work.Tasks" }))

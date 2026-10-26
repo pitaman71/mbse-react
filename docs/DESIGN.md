@@ -144,4 +144,5 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     reference, as `singleton › key › …`: its singleton's name, then each owning entry's key values, itself last; each
     ancestor is inspected on a click (a singleton with its directory schema; a deeper owner, were there one, with no
     schema known). The ownership adjacency (an adjacency marked `owner`) gets no list in the detail. A singleton has
-    no breadcrumb.
+    no breadcrumb. No subtitle repeats a schema's name: the inspected object's schema and each adjacency's relation
+    are tooltips on the label and the section's heading, since the breadcrumb and the adjacency's name say as much.
