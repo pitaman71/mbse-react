@@ -7,6 +7,7 @@ import { adjacencies, appObjectSchemas, appRelations, browsableSchemas, descript
 import { type EntryView, type ObjectView, ownership } from "../data/views.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
+import { adjacentViews, anchorOf } from "./relation.js";
 import type { RelationAnchor } from "./navigation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
@@ -78,18 +79,26 @@ export function SchemaBrowser() {
 }
 
 /** The objects a directory's singleton holds: CAP-008 over each of its named adjacencies but its ownership one, for
- * each schema the adjacency links, each object once, in frame order. */
-async function held(service: ReturnType<typeof useService>, directory: string): Promise<ObjectView[]> {
+ * each schema the adjacency links, each object once, in frame order; each with its anchor in the directory's relation
+ * (CAP-023), as an adjacency list's pill has. */
+async function held(service: ReturnType<typeof useService>, directory: string):
+    Promise<{ readonly object: ObjectView; readonly anchor: RelationAnchor | undefined }[]> {
   const [root] = await service.chips(directory);
   if (root === undefined) return [];
+  const owner = { key: root.key, schema: directory };
   const views = await Promise.all(adjacencies(service.store, directory).filter((a) => !a.owner)
-    .flatMap((a) => a.linked.map((linked) => service.adjacency(root.reference, a.name, linked))));
-  const objects = new Map<string, ObjectView>();
-  for (const { object } of views.flat()) if (!objects.has(object.key)) objects.set(object.key, object);
+    .map(async (a) => {
+      const { views, errors, all } = await adjacentViews(service, root.reference, a);
+      if (all && errors[0] !== undefined) throw errors[0];
+      return views.map(({ object, entry }) => ({ object, anchor: anchorOf(owner, a, object, entry) }));
+    }));
+  const objects = new Map<string, { object: ObjectView; anchor: RelationAnchor | undefined }>();
+  for (const one of views.flat()) if (!objects.has(one.object.key)) objects.set(one.object.key, one);
   return [...objects.values()];
 }
 
-/** The chips of the objects a directory's singleton holds, as a row (CAP-010). */
+/** The chips of the objects a directory's singleton holds, as a row (CAP-010); each opens a relation inspector
+ * anchored at the directory's relation (CAP-023), so that its arrows step along the section. */
 function Held({ directory }: { readonly directory: string }) {
   const service = useService();
   const chips = useLoad(() => held(service, directory), [service, directory]);
@@ -98,8 +107,8 @@ function Held({ directory }: { readonly directory: string }) {
   if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
   return (
     <div className={s.chipRow} role="list">
-      {chips.value.map((object) => (
-        <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} /></div>
+      {chips.value.map(({ object, anchor }) => (
+        <div role="listitem" key={object.key}><ObjectChip object={object} showSchema={false} anchor={anchor} /></div>
       ))}
     </div>
   );

@@ -11,7 +11,7 @@ import { useLoad } from "./load.js";
 import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
 import { type Bound, type RelationAnchor, type Target, useNavigation } from "./navigation.js";
-import { adjacentViews, siblings } from "./relation.js";
+import { adjacentViews, anchorOf, siblings } from "./relation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
@@ -81,14 +81,6 @@ function Proposer({ reference, adjacency, refresh, onDone }: {
       </div>
     </form>
   );
-}
-
-/** CAP-023: the anchor of an object inspected from an adjacency list: the adjacency's relation, the link the object
- * fills in the entry, and the adjacency's own link bound to the list's owner. None where the link is not known. */
-function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView, entry: EntryView): RelationAnchor | undefined {
-  const link = entry.links.find((l) => l.link !== adjacency.me && l.object.key === object.key)?.link ?? adjacency.link;
-  return link === undefined ? undefined
-    : { relation: adjacency.relation, link, links: { [adjacency.me]: owner }, properties: {} };
 }
 
 /** CAP-008 for one named adjacency, in the inspected object's detail (CAP-019): one request for each schema its

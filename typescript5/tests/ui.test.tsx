@@ -187,14 +187,13 @@ describe("the ownership path as a breadcrumb", () => {
 });
 
 describe("the relation inspector (CAP-023)", () => {
-  test("a pill opens a relation inspector, whose arrows step among the list's objects; a chip, a single object's", async () => {
+  test("a pill opens a relation inspector, whose arrows step among the list's objects; a crumb, a single object's", async () => {
     renderApp();
     await userEvent.click(await screen.findByText("work.Comment CMT-001"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
     const replies = await within(inspector).findByRole("region", { name: "replies" });
-    // from a browser's chip: a single object inspector, no arrows
-    expect(within(inspector).queryByRole("button", { name: /^Previous/ })).toBeNull();
-    expect(within(inspector).queryByRole("button", { name: /^Next/ })).toBeNull();
+    // from the Objects tab's chip: anchored at the comments' directory; from a pill, at the pill's relation
+    expect(await within(inspector).findByRole("button", { name: "Next in work.InComments" })).toBeInTheDocument();
     await userEvent.click(await within(replies).findByRole("button", { name: /CMT-002 : / }));
     await within(inspector).findByRole("heading", { level: 2, name: "work.Comment CMT-002" });
     const next = await within(inspector).findByRole("button", { name: "Next in work.RepliesTo" });
@@ -226,12 +225,19 @@ describe("the relation inspector (CAP-023)", () => {
     expect(within(tasks).getByText("Seed the demo").closest("button")).toHaveAttribute("aria-current", "true");
     await userEvent.click(await within(inspector).findByRole("button", { name: "Previous in work.InTasks" }));
     expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
-    // the Objects tab's chips are unchanged for now: a single object inspector
-    await userEvent.click(screen.getByRole("tab", { name: "Objects" }));
+  });
+
+  test("on the Objects tab, a directory's chip anchors at the directory's relation: arrows along its section", async () => {
+    renderApp();
     const objects = await screen.findByRole("region", { name: "work.Tasks" });
     await userEvent.click(await within(objects).findByText("Seed the demo"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
     await within(inspector).findByRole("heading", { level: 2, name: "Seed the demo" });
-    expect(within(inspector).queryByRole("button", { name: /^(Previous|Next)/ })).toBeNull();
+    const previous = await within(inspector).findByRole("button", { name: "Previous in work.InTasks" });
+    expect(within(inspector).queryByRole("button", { name: /^Next/ })).toBeNull();
+    await userEvent.click(previous);
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
+    expect(within(objects).getByText("Install the schemas").closest("button")).toHaveAttribute("aria-current", "true");
   });
 
   test("the sibling context: the entries agreeing with the anchor's link and property bindings", async () => {
