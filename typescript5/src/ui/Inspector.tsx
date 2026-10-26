@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
 import { Byline, byCreation } from "./Byline.js";
-import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
+import { AdjacentChip, Failure, Loading } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
@@ -28,20 +28,6 @@ const others = (entry: EntryView, me: string): ObjectView[] =>
 interface Refresh {
   readonly version: number;
   readonly changed: () => void;
-}
-
-/** One linked object and the entry that links it: its chip, its entry's properties beside it, and who created it and
- * when (CAP-020). Never its own adjacencies: those are in its detail, once inspected (CAP-019). */
-function Linked({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
-  return (
-    <div className={s.linked}>
-      <div className={s.entryRow}>
-        <ObjectChip object={object} />
-        {entry.properties.size > 0 && <EntryChip entry={entry} />}
-      </div>
-      <Byline object={object} />
-    </div>
-  );
 }
 
 /** CAP-018: a new object proposed through an adjacency: a field for each editable property of its schema (picked where
@@ -130,7 +116,7 @@ function AdjacencyList({ reference, adjacency, entries, refresh }: {
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
       <div className={s.chipGrid}>
-        {shown.map(({ object, entry }) => <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
+        {shown.map(({ object, entry }) => <AdjacentChip key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
       </div>
       {loaded.state === "loading" && <Loading />}
       {loaded.state === "done" && loaded.value.errors.map((e, i) => <Failure key={i} error={e} />)}
@@ -147,7 +133,7 @@ function EntriesByRelation({ detail }: { readonly detail: DetailView }) {
       <div className={s.chipGrid}>
         {detail.entries.filter((e) => e.relation === relation).flatMap((entry) => entry.links
           .filter((l) => l.object.key !== detail.object.key)
-          .map((l) => <Linked key={`${entry.key} ${l.link}`} object={l.object} entry={entry} />))}
+          .map((l) => <AdjacentChip key={`${entry.key} ${l.link}`} object={l.object} entry={entry} />))}
       </div>
     </section>
   ));

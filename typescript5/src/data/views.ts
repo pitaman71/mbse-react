@@ -15,6 +15,8 @@ export interface ObjectView {
   readonly reference: unknown;
   /** What tells it apart from any other (`Views.keyOf`). */
   readonly key: string;
+  /** Its ID: its path's last key (`Views.lastKey`), its owning entry's key values, or a singleton's name. */
+  readonly id: string;
   /** Its schema's registered name, where the UI knows it (CAP-005 uses it in the label's fallback). */
   readonly schema: string | undefined;
   /** CAP-005. */
@@ -58,6 +60,7 @@ export function objectOf(store: any, frame: Frame, symbol: string, schema?: stri
   return {
     reference,
     key: Views.keyOf(store, reference),
+    id: Views.lastKey(store, reference),
     schema,
     label: Views.label(store, frame, symbol, schema),
     summary: Views.summary(store, frame, symbol),

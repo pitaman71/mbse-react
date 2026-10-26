@@ -116,7 +116,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
     service's views have changed (every view kept is dropped).
 28. **Adjacencies only in a detail** (CAP-019, as revised): an object's adjacency lists are the end of its detail, in
-    its schema's order, each a row of chips; no list is nested under a chip. A deeper level is a click away: a topic's
+    its schema's order, each a grid of chips (decision 33); no list is nested under a chip. A deeper level is a click away: a topic's
     detail ends with its threads, a thread's (inspected) with its replies. (First built as nesting one level deep
     under each linked chip, which the user found confusing: "Showing comments *under* the chip is doubly so.")
 29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
@@ -127,7 +127,16 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 31. **Provenance is read, not listed** (CAP-020): a frame's framework entries (`Provenance.*`) are kept out of the
     detail's, the relation browser's and the adjacency lists' entries; `Views.provenance` reads them. The inspector
     shows "created by … · when" and "edited by … · when" under the label; each linked object in an adjacency list,
-    "created by … · when". Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
+    "{identity} @ {when}" as its pill's header (decision 33). Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
     browser leaves out `Parametrics` and `Provenance` with the other framework modules.
 32. **Creation order** (CAP-021): an adjacency list is sorted by creation time where every item it shows has one, and
     kept in frame order otherwise; ties keep frame order.
+33. **An adjacency's preview is one chip per entry** (CAP-019): two columns, the entry's properties on the left and, on
+    the right, a pill `ID : name` of the linked object, a click on which inspects it. Its ID is its path's last key
+    (`Views.lastKey`: its owning entry's key values, or a singleton's name). Its name is its own label; where it has
+    none (CAP-005's fallback), its summary, else its first text property (a comment's text), either shown as prose,
+    the pill wrapping to three lines; else its schema's name. Where the entry has no properties, the pill takes the
+    whole chip. Where the object's provenance holds its creation (CAP-020), the pill is headed, in small italics, by
+    `{identity} @ {datestamp}`; no byline sits outside the chip. The object's other properties wait for its detail.
+    (First built as the object's chip beside its entry's, which read as two things for one: "why are there two chips
+    but one thingy?"; then with the byline under the chip, "disembodied from the pill".)

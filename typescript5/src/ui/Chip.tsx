@@ -3,6 +3,7 @@
 
 import { useEffect, useRef } from "react";
 import type { EntryView, ObjectView } from "../data/views.js";
+import { moment } from "./Byline.js";
 import { Markdown } from "./Markdown.js";
 import { useNavigation } from "./navigation.js";
 import * as s from "./styles.js";
@@ -22,14 +23,20 @@ function Properties({ properties }: { readonly properties: ReadonlyMap<string, u
   );
 }
 
+/** Scrolls `ref` into view while `current` (auto scrolling). */
+function useScrolled<T extends HTMLElement>(current: boolean) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    if (current) ref.current?.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  }, [current]);
+  return ref;
+}
+
 /** An object's chip, inspected on a click; scrolled into view when it is the one inspected (auto scrolling). */
 export function ObjectChip({ object, showSchema = true }: { readonly object: ObjectView; readonly showSchema?: boolean }) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
-  const ref = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (current) ref.current?.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "smooth" });
-  }, [current]);
+  const ref = useScrolled<HTMLButtonElement>(current);
   return (
     <button
       ref={ref}
@@ -46,6 +53,52 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
       )}
       <Properties properties={object.properties} />
     </button>
+  );
+}
+
+/** What names a linked object beside its ID, and whether that is prose: its own label; where it has none (CAP-005's
+ * fallback, its schema's name and its ID), its summary, else its first text property (a comment's text), either prose;
+ * else its schema's name. */
+function nameOf(object: ObjectView): { readonly name: string; readonly prose: boolean } {
+  const fallback = object.schema === undefined ? object.id : `${object.schema} ${object.id}`;
+  if (object.label !== fallback) return { name: object.label, prose: false };
+  const text = object.summary !== "" ? object.summary
+    : [...object.properties.values()].find((v): v is string => typeof v === "string" && v.trim() !== "");
+  return text === undefined ? { name: object.schema ?? object.id, prose: false } : { name: text, prose: true };
+}
+
+/** A pill's header, where the object has a creation in its provenance (CAP-020): `{identity} @ {datestamp}`. */
+function PillHeader({ object }: { readonly object: ObjectView }) {
+  const created = object.provenance.created;
+  if (created === undefined) return null;
+  return (
+    <span className={s.pillHeader} aria-label="provenance">
+      {created.who} @ <time dateTime={created.when}>{moment(created.when)}</time>
+    </span>
+  );
+}
+
+/** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
+ * the left, where it has any; on the right, a pill of the linked object, inspected on a click: a header of who created
+ * it and when, where its provenance says (CAP-020), then `ID : name`, wrapping where its name is prose. */
+export function AdjacentChip({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
+  const { place, inspect } = useNavigation();
+  const current = place.inspect?.key === object.key;
+  const ref = useScrolled<HTMLButtonElement>(current);
+  const { name, prose } = nameOf(object);
+  return (
+    <div className={`${s.chip} ${s.adjacentChip}`} title={entry.label}>
+      {entry.properties.size > 0 && <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>}
+      <div className={s.adjacentObject}>
+        <button ref={ref} type="button" className={s.pill} aria-current={current} data-key={object.key}
+          title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema })}>
+          <PillHeader object={object} />
+          <span className={prose ? `${s.pillBody} ${s.prose}` : s.pillBody}>
+            <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />
+          </span>
+        </button>
+      </div>
+    </div>
   );
 }
 

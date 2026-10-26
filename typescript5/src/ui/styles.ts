@@ -95,6 +95,30 @@ export const entryRow = css({
 });
 export const entryChip = css({ background: "var(--accent-soft)" });
 
+/** CAP-019: an adjacency's preview, one chip in two columns: the entry's properties, then the linked object's pill. */
+export const adjacentChip = css({
+  display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, auto)", gap: "0.75rem", alignItems: "center",
+});
+export const adjacentEntry = css({ minWidth: 0 });
+export const adjacentObject = css({ minWidth: 0, justifySelf: "end", maxWidth: "100%", "&:only-child": {
+  gridColumn: "1 / -1", justifySelf: "stretch" } });
+export const pill = css({
+  display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.1rem", maxWidth: "100%", font: "inherit",
+  fontSize: "0.85rem", color: "inherit", textAlign: "left", background: "var(--accent-soft)",
+  border: "1px solid var(--line)", borderRadius: 14, padding: "0.2rem 0.75rem", cursor: "pointer", minWidth: 0,
+  "&:hover, &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
+  "&[aria-current=true]": { borderColor: "var(--accent)" },
+});
+/** CAP-020 in a pill: who created the object and when, above its `ID : name`. */
+export const pillHeader = css({ fontStyle: "italic", fontSize: "0.72rem", color: "var(--muted)", maxWidth: "100%",
+  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
+export const pillBody = css({ maxWidth: "100%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
+/** A pill whose name is prose (a comment's text): it wraps, to three lines, rather than cut at one. */
+export const prose = css({
+  display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", whiteSpace: "normal",
+});
+export const pillKey = css({ color: "var(--muted)", fontVariantNumeric: "tabular-nums" });
+
 /** FEA-005: the inspector. Its label stays at the top and its actions at the bottom while the rest scrolls between. */
 export const inspector = css({
   display: "grid", gridTemplateRows: "auto minmax(0, 1fr) auto", minHeight: 0, background: "var(--surface)",
@@ -133,7 +157,6 @@ export const checkboxField = css({
 });
 
 /** CAP-018: a linked object with its byline, "+", and a form's actions. */
-export const linked = css({ display: "grid", gap: "0.35rem" });
 export const addButton = css({
   marginLeft: "0.5rem", border: "1px solid var(--line)", background: "var(--surface)", color: "var(--accent)",
   borderRadius: 999, width: "1.6rem", height: "1.6rem", lineHeight: 1, cursor: "pointer", font: "inherit",

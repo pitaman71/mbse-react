@@ -110,17 +110,21 @@ describe("the inspector (FEA-005)", () => {
     expect(within(inspector).getByRole("button", { name: "Back" })).toBeDisabled();
     expect(await within(inspector).findByRole("heading", { level: 2, name: "Demoable index site" })).toBeInTheDocument();
     expect(within(inspector).getByText("Browse and inspect the seeded project.")).toBeInTheDocument();
-    // CAP-008: the capabilities' chips and their entries' properties, from the corpus's adjacency view
+    // CAP-008, previewed (CAP-019): one chip per entry, its properties on the left and the linked object's pill,
+    // `ID : label`, on the right; the object's summary waits for its detail
     const capabilities = within(inspector).getByRole("region", { name: "capabilities" });
     await waitFor(() => expect(within(capabilities).queryByRole("status")).toBeNull());
-    expect(within(capabilities).getByText("No-code index view")).toBeInTheDocument();
-    expect(within(capabilities).getByText("The index site, from the schema alone.")).toBeInTheDocument();
-    expect(within(capabilities).getByText("2026-12-07")).toBeInTheDocument();
+    const pill = within(capabilities).getByRole("button", { name: /: No-code index view$/ });
+    expect(pill).toHaveTextContent(/^CAP-\d+ : No-code index view$/);
+    const chip = within(pill.parentElement!.closest("[title]") as HTMLElement);
+    expect(chip.getByText("2026-12-07")).toBeInTheDocument();
+    expect(chip.getAllByRole("button")).toHaveLength(1);
+    expect(within(capabilities).queryByText("The index site, from the schema alone.")).toBeNull();
     // the schedule, through CAP-008 too; then to it, and its own detail
     const schedule = within(inspector).getByRole("region", { name: "schedule" });
     await waitFor(() => expect(within(schedule).queryByRole("status")).toBeNull());
     expect(within(schedule).queryByRole("alert")).toBeNull();
-    await userEvent.click(within(schedule).getByText("MVP"));
+    await userEvent.click(within(schedule).getByRole("button", { name: /: MVP$/ }));
     expect(await within(inspector).findByRole("heading", { level: 2, name: "MVP" })).toBeInTheDocument();
     expect(window.history.length).toBe(length);
     expect(window.location.hash).toBe("#/objects");
@@ -219,15 +223,17 @@ describe("adjacencies at the end of a detail (CAP-019), and proposals (CAP-018)"
     const inspector = screen.getByRole("complementary", { name: "inspector" });
     const comments = await within(inspector).findByRole("region", { name: "comments" });
     expect(sections(inspector).at(-1)).toBe("comments");
-    expect(await within(comments).findByText("work.Comment CMT-001")).toBeInTheDocument();
+    // a comment has no label of its own: its pill shows its text, as prose
+    expect(await within(comments).findByRole("button", { name: /CMT-001 : Should chips show adjacencies\?$/ }))
+      .toBeInTheDocument();
     expect(within(comments).queryAllByRole("region")).toEqual([]);  // no list under a chip
     expect(within(inspector).queryByRole("button", { name: "Add to directory" })).toBeNull();
-    await userEvent.click(within(comments).getByText("work.Comment CMT-001"));
+    await userEvent.click(within(comments).getByRole("button", { name: /CMT-001 : / }));
     const thread = screen.getByRole("complementary", { name: "inspector" });
     const replies = await within(thread).findByRole("region", { name: "replies" });
     expect(sections(thread).at(-1)).toBe("replies");
-    expect(await within(replies).findByText("work.Comment CMT-002")).toBeInTheDocument();
-    expect(within(replies).getByText("work.Comment CMT-003")).toBeInTheDocument();
+    expect(await within(replies).findByRole("button", { name: /CMT-002 : Not by default: a chip stays small\. The inspector lists them\.$/ })).toBeInTheDocument();
+    expect(within(replies).getByRole("button", { name: /CMT-003 : Agreed, no adjacencies on chips\.$/ })).toBeInTheDocument();
   });
 
   test("+ on a thread's replies proposes a reply, committed in one transaction", async () => {
@@ -257,13 +263,15 @@ describe("provenance (CAP-020) and creation order (CAP-021)", () => {
     await userEvent.click(await screen.findByText("Logical view as chip"));
     const inspector = screen.getByRole("complementary", { name: "inspector" });
     const comments = await within(inspector).findByRole("region", { name: "comments" });
-    await within(comments).findByText("work.Comment CMT-001");
-    const [byline] = within(comments).getAllByLabelText("provenance");
-    expect(byline).toHaveTextContent("created by unknown");
-    expect(byline!.querySelector("time")).toHaveAttribute("dateTime", "2026-10-26T14:30:05Z");
-    await userEvent.click(within(comments).getByText("work.Comment CMT-001"));
-    const header = await within(screen.getByRole("complementary", { name: "inspector" }))
+    // in the comment's pill, a header `{identity} @ {datestamp}` above `ID : text`; no byline outside the chip
+    const pill = await within(comments).findByRole("button", { name: /CMT-001 : / });
+    const header = within(pill).getByLabelText("provenance");
+    expect(header).toHaveTextContent(/^unknown @ /);
+    expect(header.querySelector("time")).toHaveAttribute("dateTime", "2026-10-26T14:30:05Z");
+    expect(within(comments).getAllByLabelText("provenance").every((p) => p.closest("button") !== null)).toBe(true);
+    await userEvent.click(within(comments).getByRole("button", { name: /CMT-001 : / }));
+    const byline = await within(screen.getByRole("complementary", { name: "inspector" }))
       .findByLabelText("provenance");
-    expect(header).toHaveTextContent("created by unknown");
+    expect(byline).toHaveTextContent("created by unknown");
   });
 });
