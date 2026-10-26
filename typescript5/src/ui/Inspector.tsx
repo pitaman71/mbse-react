@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
 import { Byline, byCreation } from "./Byline.js";
-import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
+import { AdjacentChip, Failure, Loading } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
@@ -30,15 +30,13 @@ interface Refresh {
   readonly changed: () => void;
 }
 
-/** One linked object and the entry that links it: its chip, its entry's properties beside it, and who created it and
- * when (CAP-020). Never its own adjacencies: those are in its detail, once inspected (CAP-019). */
+/** One linked object and the entry that links it: one chip, the entry's properties beside the object's pill
+ * (`AdjacentChip`), and who created the object and when (CAP-020). Never its own adjacencies: those are in its detail,
+ * once inspected (CAP-019). */
 function Linked({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
   return (
     <div className={s.linked}>
-      <div className={s.entryRow}>
-        <ObjectChip object={object} />
-        {entry.properties.size > 0 && <EntryChip entry={entry} />}
-      </div>
+      <AdjacentChip object={object} entry={entry} />
       <Byline object={object} />
     </div>
   );

@@ -116,7 +116,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
 27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
     service's views have changed (every view kept is dropped).
 28. **Adjacencies only in a detail** (CAP-019, as revised): an object's adjacency lists are the end of its detail, in
-    its schema's order, each a row of chips; no list is nested under a chip. A deeper level is a click away: a topic's
+    its schema's order, each a grid of chips (decision 33); no list is nested under a chip. A deeper level is a click away: a topic's
     detail ends with its threads, a thread's (inspected) with its replies. (First built as nesting one level deep
     under each linked chip, which the user found confusing: "Showing comments *under* the chip is doubly so.")
 29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
@@ -131,3 +131,9 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     browser leaves out `Parametrics` and `Provenance` with the other framework modules.
 32. **Creation order** (CAP-021): an adjacency list is sorted by creation time where every item it shows has one, and
     kept in frame order otherwise; ties keep frame order.
+33. **An adjacency's preview is one chip per entry** (CAP-019): two columns, the entry's properties on the left and, on
+    the right, a pill `ID : name` of the linked object, a click on which inspects it. Its ID is its path's last key
+    (`Views.lastKey`: its owning entry's key values, or a singleton's name); its name is its own label, or, where it
+    has none (CAP-005's fallback), its schema's name. Its summary and other properties wait for its detail. The
+    byline (CAP-020) stays under the chip. (First built as the object's chip beside its entry's, which read as two
+    things for one: "why are there two chips but one thingy?")

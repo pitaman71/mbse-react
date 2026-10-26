@@ -22,14 +22,20 @@ function Properties({ properties }: { readonly properties: ReadonlyMap<string, u
   );
 }
 
+/** Scrolls `ref` into view while `current` (auto scrolling). */
+function useScrolled<T extends HTMLElement>(current: boolean) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    if (current) ref.current?.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  }, [current]);
+  return ref;
+}
+
 /** An object's chip, inspected on a click; scrolled into view when it is the one inspected (auto scrolling). */
 export function ObjectChip({ object, showSchema = true }: { readonly object: ObjectView; readonly showSchema?: boolean }) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
-  const ref = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (current) ref.current?.scrollIntoView?.({ block: "nearest", inline: "nearest", behavior: "smooth" });
-  }, [current]);
+  const ref = useScrolled<HTMLButtonElement>(current);
   return (
     <button
       ref={ref}
@@ -46,6 +52,33 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
       )}
       <Properties properties={object.properties} />
     </button>
+  );
+}
+
+/** What names a linked object beside its ID: its own label, or, where it has none (CAP-005's fallback, its schema's
+ * name and its ID), its schema's name. */
+function nameOf(object: ObjectView): string {
+  const fallback = object.schema === undefined ? object.id : `${object.schema} ${object.id}`;
+  return object.label === fallback ? object.schema ?? object.id : object.label;
+}
+
+/** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
+ * the left; on the right, a pill `ID : name` of the linked object, inspected on a click. */
+export function AdjacentChip({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
+  const { place, inspect } = useNavigation();
+  const current = place.inspect?.key === object.key;
+  const ref = useScrolled<HTMLButtonElement>(current);
+  const name = nameOf(object);
+  return (
+    <div className={`${s.chip} ${s.adjacentChip}`} title={entry.label}>
+      <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>
+      <div className={s.adjacentObject}>
+        <button ref={ref} type="button" className={s.pill} aria-current={current} data-key={object.key}
+          title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema })}>
+          <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />
+        </button>
+      </div>
+    </div>
   );
 }
 

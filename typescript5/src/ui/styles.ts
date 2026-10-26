@@ -95,6 +95,21 @@ export const entryRow = css({
 });
 export const entryChip = css({ background: "var(--accent-soft)" });
 
+/** CAP-019: an adjacency's preview, one chip in two columns: the entry's properties, then the linked object's pill. */
+export const adjacentChip = css({
+  display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, auto)", gap: "0.75rem", alignItems: "center",
+});
+export const adjacentEntry = css({ minWidth: 0 });
+export const adjacentObject = css({ minWidth: 0, justifySelf: "end", maxWidth: "100%" });
+export const pill = css({
+  display: "inline-flex", alignItems: "baseline", gap: "0.3rem", maxWidth: "100%", font: "inherit", fontSize: "0.85rem",
+  color: "inherit", background: "var(--accent-soft)", border: "1px solid var(--line)", borderRadius: 999,
+  padding: "0.15rem 0.65rem", cursor: "pointer", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+  "&:hover, &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
+  "&[aria-current=true]": { borderColor: "var(--accent)" },
+});
+export const pillKey = css({ color: "var(--muted)", fontVariantNumeric: "tabular-nums" });
+
 /** FEA-005: the inspector. Its label stays at the top and its actions at the bottom while the rest scrolls between. */
 export const inspector = css({
   display: "grid", gridTemplateRows: "auto minmax(0, 1fr) auto", minHeight: 0, background: "var(--surface)",
