@@ -135,7 +135,10 @@ export const inspectorActions = css({
   display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem",
   borderTop: "1px solid var(--line)",
 });
-export const inspectorActionsCenter = css({ gridColumn: 2, display: "flex", gap: "0.5rem", justifyContent: "center" });
+export const inspectorActionsCenter = css({ gridColumn: 2, gridRow: 1, display: "flex", gap: "0.5rem", justifyContent: "center" });
+/** CAP-023: the relation inspector's arrows, at the footer's start and end. */
+export const footerStart = css({ gridColumn: 1, gridRow: 1, justifySelf: "start" });
+export const footerEnd = css({ gridColumn: 3, gridRow: 1, justifySelf: "end" });
 export const iconButton = css({
   display: "inline-grid", placeItems: "center", width: "2.25rem", height: "2.25rem", padding: 0,
   border: "1px solid var(--line)", background: "var(--surface)", color: "var(--text)", borderRadius: 6,

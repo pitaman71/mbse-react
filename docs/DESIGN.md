@@ -15,6 +15,7 @@ restating them.
 | `ui/Browsers.tsx` | CAP-009, CAP-010, CAP-011 |
 | `ui/Inspector.tsx` | FEA-005, with CAP-007's detail and CAP-008's adjacency lists |
 | `ui/navigation.tsx` | The current view, kept in the address bar, and the object inspected |
+| `ui/relation.ts` | CAP-023's sibling context, and the CAP-008 views it and the adjacency lists read |
 | `ui/styles.ts` | Every style, in TypeScript (Emotion), and the responsive layout |
 | `config.ts` | The source: the corpus (default) or a live server (`MBSE_REST_URL`) |
 
@@ -69,8 +70,7 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     pill's. An inspected object is neither in a shared link nor kept over a reload.
 13. **The inspector's actions** are in its footer (FEA-005), centered side by side: Edit and Close, as icon buttons
     (a pencil, a cross; each named and with a tooltip), or, while editing, Cancel, Save and Close, Close disabled
-    while saving. The footer's start and end are left for arrows, were Back and Forward ever enabled; with no history
-    (decision 12) there are none. The header holds the label, the breadcrumb and the byline, no button.
+    while saving. The footer's start and end hold a relation inspector's arrows (decision 35). The header holds the label, the breadcrumb and the byline, no button.
 14. **Responsive layout**: on a screen 900px wide or more the inspector, once revealed, takes 2 of 5 columns beside the
     browser (3 of 5); narrower, it covers the browser. Fonts scale from 14px to 18px with the width (`clamp`). Values
     are abbreviated to one line (40 characters in a chip, cut at a word, with an ellipsis and the full value as a
@@ -148,3 +148,16 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     schema known). The ownership adjacency (an adjacency marked `owner`) gets no list in the detail. A singleton has
     no breadcrumb. No subtitle repeats a schema's name: the inspected object's schema and each adjacency's relation
     are tooltips on the label and the section's heading, since the breadcrumb and the adjacency's name say as much.
+35. **The relation inspector** (CAP-023): a target carries an optional anchor, `{ relation, link, links, properties }`:
+    the relation holding the object, the link it fills, and bindings for other links (each an object's key and
+    schema) and for property values. A pill in an adjacency list anchors its object: the adjacency's relation, the
+    link the object fills in the entry, and the adjacency's own link bound to the list's owner, no property values.
+    On the Schemas tab (CAP-009), an owned object's chip anchors at its ownership relation: the link it fills, and
+    the other bound to its owner (the last step before it on its ownership path), so the arrows step along its row.
+    A singleton's chip, the Objects and Relations tabs' chips and a crumb open a single object inspector. The siblings are read through CAP-008 from
+    the first bound link whose object's schema names an adjacency to the relation through it (the views the adjacency
+    list already read, kept by `Service`), its entries matched against the other link and property bindings, each
+    object once, in CAP-021's order; none where no bound link has such an adjacency (a service view of a relation's
+    entries under arbitrary bindings would lift that; not built). The footer shows "Previous in {relation}" and
+    "Next in {relation}" as arrow icon buttons, at its start and end, only where that sibling exists and only out of
+    editing; stepping keeps the anchor and no history.

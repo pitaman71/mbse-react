@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import type { EntryView, ObjectView } from "../data/views.js";
 import { moment } from "./Byline.js";
 import { Markdown } from "./Markdown.js";
-import { useNavigation } from "./navigation.js";
+import { type RelationAnchor, useNavigation } from "./navigation.js";
 import * as s from "./styles.js";
 import { abbreviate, full } from "./values.js";
 
@@ -32,8 +32,11 @@ function useScrolled<T extends HTMLElement>(current: boolean) {
   return ref;
 }
 
-/** An object's chip, inspected on a click; scrolled into view when it is the one inspected (auto scrolling). */
-export function ObjectChip({ object, showSchema = true }: { readonly object: ObjectView; readonly showSchema?: boolean }) {
+/** An object's chip, inspected on a click (with an anchor, in a relation inspector, CAP-023); scrolled into view when
+ * it is the one inspected (auto scrolling). */
+export function ObjectChip({ object, showSchema = true, anchor }: {
+  readonly object: ObjectView; readonly showSchema?: boolean; readonly anchor?: RelationAnchor | undefined;
+}) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
   const ref = useScrolled<HTMLButtonElement>(current);
@@ -44,7 +47,7 @@ export function ObjectChip({ object, showSchema = true }: { readonly object: Obj
       className={s.chip}
       aria-current={current}
       data-key={object.key}
-      onClick={() => inspect({ key: object.key, schema: object.schema })}
+      onClick={() => inspect({ key: object.key, schema: object.schema, anchor })}
     >
       <div className={s.chipLabel} title={object.label}><Markdown text={object.label} inline /></div>
       {showSchema && object.schema !== undefined && <div className={s.chipSchema}>{object.schema}</div>}
@@ -80,8 +83,11 @@ function PillHeader({ object }: { readonly object: ObjectView }) {
 
 /** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
  * the left, where it has any; on the right, a pill of the linked object, inspected on a click: a header of who created
- * it and when, where its provenance says (CAP-020), then `ID : name`, wrapping where its name is prose. */
-export function AdjacentChip({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
+ * it and when, where its provenance says (CAP-020), then `ID : name`, wrapping where its name is prose. With an
+ * anchor, the click opens a relation inspector (CAP-023). */
+export function AdjacentChip({ object, entry, anchor }: {
+  readonly object: ObjectView; readonly entry: EntryView; readonly anchor?: RelationAnchor | undefined;
+}) {
   const { place, inspect } = useNavigation();
   const current = place.inspect?.key === object.key;
   const ref = useScrolled<HTMLButtonElement>(current);
@@ -91,7 +97,7 @@ export function AdjacentChip({ object, entry }: { readonly object: ObjectView; r
       {entry.properties.size > 0 && <div className={s.adjacentEntry}><Properties properties={entry.properties} /></div>}
       <div className={s.adjacentObject}>
         <button ref={ref} type="button" className={s.pill} aria-current={current} data-key={object.key}
-          title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema })}>
+          title={object.label} onClick={() => inspect({ key: object.key, schema: object.schema, anchor })}>
           <PillHeader object={object} />
           <span className={prose ? `${s.pillBody} ${s.prose}` : s.pillBody}>
             <span className={s.pillKey}>{object.id}</span> : <Markdown text={name} inline />

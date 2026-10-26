@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { corpusFetch, response } from "../src/data/corpus.js";
 import { Service } from "../src/data/views.js";
 import { byRelation } from "../src/ui/Browsers.js";
+import { siblings } from "../src/ui/relation.js";
 import { App } from "../src/ui/App.js";
 import { format, parse } from "../src/ui/navigation.js";
 
@@ -161,6 +162,71 @@ describe("the ownership path as a breadcrumb", () => {
     const tasks = await within(directory).findByRole("region", { name: "tasks" });
     expect(await within(tasks).findByRole("button", { name: /TSK-002 : Seed the demo$/ })).toBeInTheDocument();
     expect(within(directory).queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("the relation inspector (CAP-023)", () => {
+  test("a pill opens a relation inspector, whose arrows step among the list's objects; a chip, a single object's", async () => {
+    renderApp();
+    await userEvent.click(await screen.findByText("work.Comment CMT-001"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    const replies = await within(inspector).findByRole("region", { name: "replies" });
+    // from a browser's chip: a single object inspector, no arrows
+    expect(within(inspector).queryByRole("button", { name: /^Previous/ })).toBeNull();
+    expect(within(inspector).queryByRole("button", { name: /^Next/ })).toBeNull();
+    await userEvent.click(await within(replies).findByRole("button", { name: /CMT-002 : / }));
+    await within(inspector).findByRole("heading", { level: 2, name: "work.Comment CMT-002" });
+    const next = await within(inspector).findByRole("button", { name: "Next in work.RepliesTo" });
+    expect(within(inspector).queryByRole("button", { name: /^Previous/ })).toBeNull();
+    await userEvent.click(next);
+    await within(inspector).findByRole("heading", { level: 2, name: "work.Comment CMT-003" });
+    const previous = await within(inspector).findByRole("button", { name: "Previous in work.RepliesTo" });
+    expect(within(inspector).queryByRole("button", { name: /^Next/ })).toBeNull();
+    await userEvent.click(previous);
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "work.Comment CMT-002" })).toBeInTheDocument();
+    // a crumb opens a single object inspector again: no arrows
+    const crumbs = within(inspector).getByRole("navigation", { name: "ownership" });
+    await userEvent.click(within(crumbs).getByRole("button", { name: "work.Comments" }));
+    await within(inspector).findByRole("heading", { level: 2, name: /work\.Comments/ });
+    expect(within(inspector).queryByRole("button", { name: /^(Previous|Next)/ })).toBeNull();
+  });
+
+  test("on the Schemas tab, an owned object's chip anchors at its ownership relation: arrows along its row", async () => {
+    renderApp();
+    await userEvent.click(screen.getByRole("tab", { name: "Schemas" }));
+    const tasks = await screen.findByRole("region", { name: "work.Task" });
+    await userEvent.click(await within(tasks).findByText("Install the schemas"));
+    const inspector = screen.getByRole("complementary", { name: "inspector" });
+    await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" });
+    const next = await within(inspector).findByRole("button", { name: "Next in work.InTasks" });
+    expect(within(inspector).queryByRole("button", { name: /^Previous/ })).toBeNull();
+    await userEvent.click(next);
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Seed the demo" })).toBeInTheDocument();
+    expect(within(tasks).getByText("Seed the demo").closest("button")).toHaveAttribute("aria-current", "true");
+    await userEvent.click(await within(inspector).findByRole("button", { name: "Previous in work.InTasks" }));
+    expect(await within(inspector).findByRole("heading", { level: 2, name: "Install the schemas" })).toBeInTheDocument();
+    // the Objects tab's chips are unchanged for now: a single object inspector
+    await userEvent.click(screen.getByRole("tab", { name: "Objects" }));
+    const objects = await screen.findByRole("region", { name: "work.Tasks" });
+    await userEvent.click(await within(objects).findByText("Seed the demo"));
+    await within(inspector).findByRole("heading", { level: 2, name: "Seed the demo" });
+    expect(within(inspector).queryByRole("button", { name: /^(Previous|Next)/ })).toBeNull();
+  });
+
+  test("the sibling context: the entries agreeing with the anchor's link and property bindings", async () => {
+    const s = service();
+    const goal = await keyIn(s, "detail-goal");
+    const all = { relation: "work.Plans", link: "capability", links: { goal: { key: goal, schema: "work.Goal" } },
+      properties: {} };
+    const every = await siblings(s, all);
+    expect(every.length).toBeGreaterThan(0);
+    expect(every.every((t) => t.anchor === all && t.schema === "work.Capability")).toBe(true);
+    const [first] = await s.adjacency(s.reference(goal), "capabilities", "work.Capability");
+    const original = first!.entry.properties.get("original");
+    const some = await siblings(s, { ...all, properties: { original } });
+    expect(some.map((t) => t.key)).toContain(first!.object.key);
+    expect(await siblings(s, { ...all, properties: { original: "1999-01-01" } })).toEqual([]);
+    expect(await siblings(s, { ...all, links: { goal: { key: goal } } })).toEqual([]); // no schema, no way in
   });
 });
 

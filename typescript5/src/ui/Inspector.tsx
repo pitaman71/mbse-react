@@ -10,7 +10,8 @@ import { AdjacentChip, Failure, Loading } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
-import { type Target, useNavigation } from "./navigation.js";
+import { type Bound, type RelationAnchor, type Target, useNavigation } from "./navigation.js";
+import { adjacentViews, siblings } from "./relation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
@@ -82,25 +83,25 @@ function Proposer({ reference, adjacency, refresh, onDone }: {
   );
 }
 
+/** CAP-023: the anchor of an object inspected from an adjacency list: the adjacency's relation, the link the object
+ * fills in the entry, and the adjacency's own link bound to the list's owner. None where the link is not known. */
+function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView, entry: EntryView): RelationAnchor | undefined {
+  const link = entry.links.find((l) => l.link !== adjacency.me && l.object.key === object.key)?.link ?? adjacency.link;
+  return link === undefined ? undefined
+    : { relation: adjacency.relation, link, links: { [adjacency.me]: owner }, properties: {} };
+}
+
 /** CAP-008 for one named adjacency, in the inspected object's detail (CAP-019): one request for each schema its
  * entries may link, the results together, each linked object a chip. Until they arrive, or where every one is refused,
  * the detail view's own entries are shown, labelled from it. "+" proposes a new linked object (CAP-018). */
-function AdjacencyList({ reference, adjacency, entries, refresh }: {
-  readonly reference: unknown; readonly adjacency: Adjacency; readonly entries: readonly EntryView[];
-  readonly refresh: Refresh;
+function AdjacencyList({ owner, reference, adjacency, entries, refresh }: {
+  readonly owner: Bound; readonly reference: unknown; readonly adjacency: Adjacency;
+  readonly entries: readonly EntryView[]; readonly refresh: Refresh;
 }) {
   const service = useService();
   const [proposing, setProposing] = useState(false);
-  const loaded = useLoad(async () => {
-    const settled = await Promise.allSettled(adjacency.linked.map((y) => service.adjacency(reference, adjacency.name, y)));
-    const views: AdjacentView[] = [];
-    const errors: Error[] = [];
-    for (const r of settled) {
-      if (r.status === "fulfilled") views.push(...r.value);
-      else errors.push(r.reason instanceof Error ? r.reason : new Error(String(r.reason)));
-    }
-    return { views, errors, all: errors.length === settled.length };
-  }, [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
+  const loaded = useLoad(() => adjacentViews(service, reference, adjacency),
+    [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
   const fallback = entries.flatMap((entry) => others(entry, adjacency.me).map((object) => ({ object, entry })));
   const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
   return (
@@ -115,7 +116,8 @@ function AdjacencyList({ reference, adjacency, entries, refresh }: {
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
       <div className={s.chipGrid}>
-        {shown.map(({ object, entry }) => <AdjacentChip key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
+        {shown.map(({ object, entry }) => <AdjacentChip key={`${entry.key} ${object.key}`} object={object} entry={entry}
+          anchor={anchorOf(owner, adjacency, object, entry)} />)}
       </div>
       {loaded.state === "loading" && <Loading />}
       {loaded.state === "done" && loaded.value.errors.map((e, i) => <Failure key={i} error={e} />)}
@@ -204,8 +206,8 @@ function Detail({ target, detail, onEdit, refresh }: {
       )}
       {named === undefined ? <EntriesByRelation detail={detail} /> : named.map((adjacency) => {
         const entries = entriesOf(detail, adjacency);
-        return <AdjacencyList key={adjacency.name} reference={detail.object.reference} adjacency={adjacency}
-          entries={entries} refresh={refresh} />;
+        return <AdjacencyList key={adjacency.name} owner={{ key: detail.object.key, schema: target.schema }}
+          reference={detail.object.reference} adjacency={adjacency} entries={entries} refresh={refresh} />;
       })}
     </>
   );
@@ -230,7 +232,7 @@ type Mode = "view" | "edit" | "save";
  * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
  * value, then save mode while the service commits, and view mode again with what the service gives back. */
 export function Inspector() {
-  const { place, close } = useNavigation();
+  const { place, close, inspect } = useNavigation();
   const service = useService();
   const target = place.inspect;
   const body = useRef<HTMLDivElement>(null);
@@ -251,7 +253,16 @@ export function Inspector() {
     body.current?.scrollTo?.({ top: 0 });
     setEdited(undefined); setMode("view"); setDraft({}); setFailed(undefined);
   }, [target?.key]);
+  // CAP-023: a relation inspector's siblings, read again after a save as every view is
+  const anchored = target?.anchor === undefined ? "" : globalThis.JSON.stringify(target.anchor);
+  const context = useLoad(async () => target?.anchor === undefined ? [] : siblings(service, target.anchor),
+    [service, anchored, version]);
   if (target === undefined) return null;
+  const all = context.state === "done" ? context.value : [];
+  const at = all.findIndex((t) => t.key === target.key);
+  const previous = at > 0 ? all[at - 1] : undefined;
+  const next = at >= 0 && at < all.length - 1 ? all[at + 1] : undefined;
+  const along = target.anchor === undefined ? "" : ` in ${target.anchor.relation}`;
   const detail = edited ?? (loaded.state === "done" ? loaded.value : undefined);
   const fields = detail !== undefined && target.schema !== undefined ? editableProperties(service.store, target.schema) : [];
   const edit = fields.length === 0 ? undefined : () => {
@@ -298,7 +309,10 @@ export function Inspector() {
             onChange={(name, value) => setDraft((d) => ({ ...d, [name]: value }))} />)}
       </div>
       <footer className={s.inspectorActions}>
-        {/* left and right of the actions: where arrows for Back and Forward would go, had the inspector a history */}
+        {mode === "view" && previous !== undefined && (
+          <button type="button" className={`${s.iconButton} ${s.footerStart}`} onClick={() => inspect(previous)}
+            aria-label={`Previous${along}`} title={`Previous${along}`}><Icon path="M15 6l-6 6 6 6" /></button>
+        )}
         <div className={s.inspectorActionsCenter}>
           {mode === "view" ? (
             edit !== undefined && (
@@ -322,6 +336,10 @@ export function Inspector() {
             <Icon path="M6 6l12 12M18 6L6 18" />
           </button>
         </div>
+        {mode === "view" && next !== undefined && (
+          <button type="button" className={`${s.iconButton} ${s.footerEnd}`} onClick={() => inspect(next)}
+            aria-label={`Next${along}`} title={`Next${along}`}><Icon path="M9 6l6 6-6 6" /></button>
+        )}
       </footer>
     </aside>
   );
