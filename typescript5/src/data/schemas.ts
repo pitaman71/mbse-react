@@ -5,7 +5,7 @@
 import { schemaNames } from "@mbse/rest/Services/Rest/Client";
 
 /** The framework's modules, whose schemas the schema browser leaves out (CAP-009). */
-export const FRAMEWORK_MODULES = ["Schemas", "Paths", "Mutations", "References"] as const;
+export const FRAMEWORK_MODULES = ["Schemas", "Paths", "Mutations", "References", "Parametrics", "Provenance"] as const;
 
 export const isFramework = (name: string): boolean =>
   (FRAMEWORK_MODULES as readonly string[]).includes(name.split(".")[0] ?? "");
@@ -77,6 +77,22 @@ export interface Adjacency {
   readonly me: string;
   /** The schemas whose objects its entries link, on the relation's other links: CAP-008's `y`, one request each. */
   readonly linked: readonly string[];
+  /** The relation's other link, where it has exactly one: where a proposal (CAP-018) links its new object. */
+  readonly link: string | undefined;
+  /** Whether it is the object's ownership adjacency (to its directory). */
+  readonly owner: boolean;
+  /** Whether the object may have several entries in it: no `unique` clause lets the object determine the rest. */
+  readonly toMany: boolean;
+}
+
+/** Whether `me` determines the relation's other links: some `unique(S)` clause holds every other link but not `me`. */
+function toOne(relation: any, me: string): boolean {
+  const links = [...(relation?.entry?.links?.keys?.() ?? [])].map(String);
+  const others = links.filter((l) => l !== me);
+  return [...(relation?.uniques ?? [])].some((clause: Iterable<unknown>) => {
+    const names = new Set([...clause].map(String));
+    return !names.has(me) && others.every((l) => names.has(l));
+  });
 }
 
 /** An object schema's named adjacencies, in its order (CAP-007 lists their entries, CAP-008 each one's chips). */
@@ -88,7 +104,9 @@ export function adjacencies(store: any, name: string): Adjacency[] {
     const relation = String(a.relation?.name ?? "");
     const linked = [...new Set(all.filter(({ adjacency: other }) => other.relation?.name === relation
       && other.me !== a.me).map(({ owner }) => owner))];
-    return { name: adjacency, relation, me: String(a.me), linked };
+    const links = [...(a.relation?.entry?.links?.keys?.() ?? [])].map(String).filter((l) => l !== String(a.me));
+    return { name: adjacency, relation, me: String(a.me), linked, link: links.length === 1 ? links[0] : undefined,
+      owner: a.owner === true, toMany: !toOne(a.relation, String(a.me)) };
   });
 }
 
@@ -98,4 +116,25 @@ export function textProperties(store: any, name: string): string[] {
   const properties = schema(store, name)?.properties;
   if (!(properties instanceof Map)) return [];
   return [...properties].filter(([, p]: [string, any]) => p?.schema?.name === "Schemas.OfStr").map(([n]) => n);
+}
+
+/** A property the UI edits, and how: text as markdown (CAP-014), a boolean as a checkbox (CAP-022). */
+export interface Field {
+  readonly name: string;
+  readonly kind: "text" | "bool";
+}
+
+const KINDS: Readonly<Record<string, Field["kind"]>> = { "Schemas.OfStr": "text", "Schemas.OfBool": "bool" };
+
+/** The properties of an object schema, or of a relation's entries, that the UI edits, in the schema's order: those
+ * whose schema is `Schemas.OfStr` or `Schemas.OfBool`. An ownership key is an entry's property, never the object's,
+ * so none is among an object's. */
+export function editableProperties(store: any, name: string): Field[] {
+  const s = schema(store, name);
+  const properties = s?.properties ?? s?.entry?.properties;
+  if (!(properties instanceof Map)) return [];
+  return [...properties].flatMap(([n, p]: [string, any]) => {
+    const kind = KINDS[String(p?.schema?.name)];
+    return kind === undefined ? [] : [{ name: n, kind }];
+  });
 }

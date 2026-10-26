@@ -98,3 +98,33 @@ Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consiste
     entry anywhere; navigating to another object discards an unsaved draft.
 23. **Against the corpus**, only the edits it holds are accepted (`edit-task-title`, `edit-task-clear`); any other is
     refused (599), as any view the corpus lacks is.
+
+### Comments: CAP-022 and CAP-018 to CAP-021 (decided by the agent, for review)
+
+24. **Booleans as checkboxes** (CAP-022): a `Schemas.OfBool` value is a read-only checkbox in view mode, labelled by
+    its property's name, and a checkbox in the editor; an absent boolean reads as unchecked, and is written only where
+    the user changes it. The editor's fields (`Fields`) are shared by the object inspector and the adjacency
+    inspector, and `editableProperties` gives them for an object schema or a relation's entries.
+25. **"+" on an adjacency** (CAP-018) wherever its relation has exactly one other link and it is not the object's
+    ownership adjacency (proposing a new directory means nothing); where several schemas fill the other link, the
+    proposer offers a choice. Every named adjacency is shown as a list, empty or not, so that "+" can add the first.
+26. **The proposer** shows a field for each editable property (text, boolean) of the new object's schema and of the
+    relation's entries; only what the user filled is sent (`Service.propose`, mbse-rest's `client.propose`).
+27. **After a save**, an edit's or a proposal's, the inspector's detail and every list are read again, since the
+    service's views have changed (every view kept is dropped).
+28. **Nesting** (CAP-019): a top-level list's linked objects show their own adjacencies one level deep, those that
+    are to-many (no `unique` clause lets the object determine the rest), not ownership adjacencies, and not the
+    relation they were reached through: a topic's threads show their replies, and a reply's one thread is not shown
+    again. A nested list's count is what it loaded.
+29. **Editing an existing entry's properties with its linked object's** (the rest of CAP-018) is not built yet.
+30. **The tab's session** (CAP-015): an id made once per browser tab and kept for its life (`sessionStorage`), the
+    browser's locale (`navigator.language`) and a kind of device (`touch` or `desktop`, by its pointer), given to a
+    live service's client, which names the session in a header and writes the locale and device into each write.
+    Against the corpus no session is sent, so that requests stay the corpus's.
+31. **Provenance is read, not listed** (CAP-020): a frame's framework entries (`Provenance.*`) are kept out of the
+    detail's, the relation browser's and the adjacency lists' entries; `Views.provenance` reads them. The inspector
+    shows "created by … · when" and "edited by … · when" under the label; each linked object in an adjacency list,
+    "created by … · when". Times are in the browser's locale and time zone (`Intl.DateTimeFormat`). The schema
+    browser leaves out `Parametrics` and `Provenance` with the other framework modules.
+32. **Creation order** (CAP-021): an adjacency list is sorted by creation time where every item it shows has one, and
+    kept in frame order otherwise; ties keep frame order.

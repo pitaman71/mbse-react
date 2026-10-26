@@ -3,10 +3,12 @@
  * named adjacency lists its linked objects' chips (CAP-008). */
 
 import { useEffect, useRef, useState } from "react";
-import { adjacencies, type Adjacency, textProperties } from "../data/schemas.js";
+import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
 import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
+import { Byline, byCreation } from "./Byline.js";
 import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
+import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
 import { type Target, useNavigation } from "./navigation.js";
 import { useService } from "./service.js";
@@ -22,22 +24,91 @@ export function entriesOf(detail: DetailView, adjacency: Adjacency): EntryView[]
 const others = (entry: EntryView, me: string): ObjectView[] =>
   entry.links.filter((l) => l.link !== me).map((l) => l.object);
 
-/** One linked object and the entry that links it, its entry properties beside its chip. */
-function Linked({ object, entry }: { readonly object: ObjectView; readonly entry: EntryView }) {
+/** What a save changed: every view is read again (`version`), and `changed` is called to say so. */
+interface Refresh {
+  readonly version: number;
+  readonly changed: () => void;
+}
+
+/** One linked object and the entry that links it, its entry properties beside its chip; below it, where nesting is
+ * allowed, its own adjacency lists (CAP-019). */
+function Linked({ object, entry, children }: {
+  readonly object: ObjectView; readonly entry: EntryView; readonly children?: React.ReactNode;
+}) {
   return (
-    <div className={s.entryRow}>
-      <ObjectChip object={object} />
-      {entry.properties.size > 0 && <EntryChip entry={entry} />}
+    <div className={s.linked}>
+      <div className={s.entryRow}>
+        <ObjectChip object={object} />
+        {entry.properties.size > 0 && <EntryChip entry={entry} />}
+      </div>
+      <Byline object={object} />
+      {children}
     </div>
   );
 }
 
-/** CAP-008 for one named adjacency: one request for each schema its entries may link, the results together. Until
- * they arrive, or where every one is refused, the detail view's own entries are shown, labelled from it. */
-function AdjacencyList({ reference, adjacency, entries }: {
-  readonly reference: unknown; readonly adjacency: Adjacency; readonly entries: readonly EntryView[];
+/** CAP-018: a new object proposed through an adjacency: a field for each editable property of its schema (picked where
+ * several fill the link) and of the relation's entries; Save commits the object and its entry in one transaction. */
+function Proposer({ reference, adjacency, refresh, onDone }: {
+  readonly reference: unknown; readonly adjacency: Adjacency; readonly refresh: Refresh; readonly onDone: () => void;
 }) {
   const service = useService();
+  const [schema, setSchema] = useState(adjacency.linked[0] ?? "");
+  const [draft, setDraft] = useState<Draft>({});
+  const [entryDraft, setEntryDraft] = useState<Draft>({});
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState<Error | undefined>(undefined);
+  const fields = editableProperties(service.store, schema);
+  const entryFields = editableProperties(service.store, adjacency.relation);
+  const none: ReadonlyMap<string, unknown> = new Map();
+  const save = async (): Promise<void> => {
+    setSaving(true);
+    try {
+      await service.propose(reference, adjacency.name, adjacency.link!, schema,
+        changes(fields, draft, none), changes(entryFields, entryDraft, none));
+      onDone();
+      refresh.changed();
+    } catch (error) {
+      setFailed(error instanceof Error ? error : new Error(String(error)));
+      setSaving(false);
+    }
+  };
+  return (
+    <form className={s.editor} aria-label={`new in ${adjacency.name}`} onSubmit={(e) => e.preventDefault()}>
+      {adjacency.linked.length > 1 && (
+        <label>
+          <span className={s.editorName}>schema</span>
+          <select value={schema} disabled={saving} onChange={(e) => { setSchema(e.target.value); setDraft({}); }}>
+            {adjacency.linked.map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+        </label>
+      )}
+      <Fields fields={fields} draft={draft} disabled={saving}
+        onChange={(name, value) => setDraft((d) => ({ ...d, [name]: value }))} />
+      {entryFields.length > 0 && <span className={s.editorName}>{adjacency.relation}</span>}
+      <Fields fields={entryFields} draft={entryDraft} disabled={saving}
+        onChange={(name, value) => setEntryDraft((d) => ({ ...d, [name]: value }))} />
+      {failed !== undefined && <Failure error={failed} />}
+      <div className={s.formActions}>
+        <button type="button" className={s.button} onClick={onDone} disabled={saving}>Cancel</button>
+        <button type="button" className={s.button} onClick={() => { void save(); }} disabled={saving} aria-busy={saving}>
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** CAP-008 for one named adjacency: one request for each schema its entries may link, the results together. Until
+ * they arrive, or where every one is refused, the detail view's own entries are shown, labelled from it. "+" proposes
+ * a new linked object (CAP-018). At the top level, each linked object shows its own to-many adjacencies, one level
+ * deep (CAP-019): not its ownership adjacency, nor the relation it was reached through. */
+function AdjacencyList({ reference, adjacency, entries, refresh, depth = 0 }: {
+  readonly reference: unknown; readonly adjacency: Adjacency; readonly entries: readonly EntryView[];
+  readonly refresh: Refresh; readonly depth?: number;
+}) {
+  const service = useService();
+  const [proposing, setProposing] = useState(false);
   const loaded = useLoad(async () => {
     const settled = await Promise.allSettled(adjacency.linked.map((y) => service.adjacency(reference, adjacency.name, y)));
     const views: AdjacentView[] = [];
@@ -47,15 +118,33 @@ function AdjacencyList({ reference, adjacency, entries }: {
       else errors.push(r.reason instanceof Error ? r.reason : new Error(String(r.reason)));
     }
     return { views, errors, all: errors.length === settled.length };
-  }, [service, reference, adjacency.name, adjacency.linked.join(" ")]);
+  }, [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
   const fallback = entries.flatMap((entry) => others(entry, adjacency.me).map((object) => ({ object, entry })));
-  const shown = loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback;
+  const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
+  const nested = (object: ObjectView): Adjacency[] => depth > 0 || object.schema === undefined ? []
+    : adjacencies(service.store, object.schema).filter((a) => a.toMany && !a.owner && a.relation !== adjacency.relation);
+  const Heading = depth === 0 ? "h3" : "h4";
   return (
-    <section className={s.section} aria-label={adjacency.name}>
-      <h3 className={s.sectionTitle}>{adjacency.name} <span className={s.chipSchema}>({entries.length})</span></h3>
-      <p className={s.muted}>{adjacency.relation}</p>
-      <div className={s.chipGrid}>
-        {shown.map(({ object, entry }) => <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry} />)}
+    <section className={depth === 0 ? s.section : s.nested} aria-label={adjacency.name}>
+      <Heading className={s.sectionTitle}>
+        {adjacency.name} <span className={s.chipSchema}>({shown.length})</span>
+        {adjacency.link !== undefined && adjacency.linked.length > 0 && !adjacency.owner && !proposing && (
+          <button type="button" className={s.addButton} onClick={() => setProposing(true)}
+            aria-label={`Add to ${adjacency.name}`}>+</button>
+        )}
+      </Heading>
+      {depth === 0 && <p className={s.muted}>{adjacency.relation}</p>}
+      {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
+        onDone={() => setProposing(false)} />}
+      <div className={depth === 0 ? s.chipGrid : s.nestedGrid}>
+        {shown.map(({ object, entry }) => (
+          <Linked key={`${entry.key} ${object.key}`} object={object} entry={entry}>
+            {nested(object).map((a) => (
+              <AdjacencyList key={a.name} reference={object.reference} adjacency={a} entries={[]} refresh={refresh}
+                depth={depth + 1} />
+            ))}
+          </Linked>
+        ))}
       </div>
       {loaded.state === "loading" && <Loading />}
       {loaded.state === "done" && loaded.value.errors.map((e, i) => <Failure key={i} error={e} />)}
@@ -89,8 +178,8 @@ function Editable({ onEdit, children }: { readonly onEdit?: () => void; readonly
   );
 }
 
-function Detail({ target, detail, onEdit }: {
-  readonly target: Target; readonly detail: DetailView; readonly onEdit?: () => void;
+function Detail({ target, detail, onEdit, refresh }: {
+  readonly target: Target; readonly detail: DetailView; readonly onEdit?: () => void; readonly refresh: Refresh;
 }) {
   const service = useService();
   const named = target.schema === undefined ? undefined : adjacencies(service.store, target.schema);
@@ -105,7 +194,7 @@ function Detail({ target, detail, onEdit }: {
             {[...detail.object.properties].map(([name, value]) => (
               <div key={name} style={{ display: "contents" }}>
                 <dt>{name}</dt>
-                <dd><Editable onEdit={onEdit}><div className={s.markdown}><Value value={value} /></div></Editable></dd>
+                <dd><Editable onEdit={onEdit}><div className={s.markdown}><Value value={value} name={name} /></div></Editable></dd>
               </div>
             ))}
           </dl>
@@ -113,40 +202,27 @@ function Detail({ target, detail, onEdit }: {
       )}
       {named === undefined ? <EntriesByRelation detail={detail} /> : named.map((adjacency) => {
         const entries = entriesOf(detail, adjacency);
-        return entries.length === 0
-          ? (
-            <section key={adjacency.name} className={s.section} aria-label={adjacency.name}>
-              <h3 className={s.sectionTitle}>{adjacency.name} <span className={s.chipSchema}>(0)</span></h3>
-            </section>
-          )
-          : <AdjacencyList key={adjacency.name} reference={detail.object.reference} adjacency={adjacency} entries={entries} />;
+        return <AdjacencyList key={adjacency.name} reference={detail.object.reference} adjacency={adjacency}
+          entries={entries} refresh={refresh} />;
       })}
     </>
   );
 }
 
-/** CAP-014's editor: one text area per text property of the object's schema, each starting from what it holds. */
-function Editor({ names, draft, onChange, disabled, error }: {
-  readonly names: readonly string[]; readonly draft: Readonly<Record<string, string>>;
-  readonly onChange: (name: string, text: string) => void; readonly disabled: boolean; readonly error?: Error;
+/** The object's editor (CAP-014, CAP-022): a field per editable property of its schema, from what it holds. */
+function Editor({ fields, draft, onChange, disabled, error }: {
+  readonly fields: readonly Field[]; readonly draft: Draft;
+  readonly onChange: (name: string, value: string | boolean) => void; readonly disabled: boolean; readonly error?: Error;
 }) {
   return (
     <form className={s.editor} aria-label="edit" onSubmit={(e) => e.preventDefault()}>
-      {names.map((name) => (
-        <label key={name}>
-          <span className={s.editorName}>{name}</span>
-          <textarea className={s.textarea} name={name} value={draft[name] ?? ""} disabled={disabled}
-            onChange={(e) => onChange(name, e.target.value)} />
-        </label>
-      ))}
+      <Fields fields={fields} draft={draft} onChange={onChange} disabled={disabled} />
       {error !== undefined && <Failure error={error} />}
     </form>
   );
 }
 
 type Mode = "view" | "edit" | "save";
-
-const textOf = (value: unknown): string => (typeof value === "string" ? value : "");
 
 /** The panel: hidden until an object is inspected; each inspection clears it, shows loading, and fetches the detail.
  * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
@@ -158,31 +234,32 @@ export function Inspector() {
   const body = useRef<HTMLDivElement>(null);
   const current = useRef(target?.key);
   current.current = target?.key;
+  const [version, setVersion] = useState(0); // bumped by a save, so that every view is read again
   const loaded = useLoad(async () => {
     if (target === undefined) return undefined;
     await service.schemas();
     return service.detail(service.reference(target.key), target.schema);
-  }, [service, target?.key, target?.schema]);
+  }, [service, target?.key, target?.schema, version]);
   const [edited, setEdited] = useState<DetailView | undefined>(undefined);
   const [mode, setMode] = useState<Mode>("view");
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<Draft>({});
   const [failed, setFailed] = useState<Error | undefined>(undefined);
+  const refresh: Refresh = { version, changed: () => { setEdited(undefined); setVersion((v) => v + 1); } };
   useEffect(() => {
     body.current?.scrollTo?.({ top: 0 });
     setEdited(undefined); setMode("view"); setDraft({}); setFailed(undefined);
   }, [target?.key]);
   if (target === undefined) return null;
   const detail = edited ?? (loaded.state === "done" ? loaded.value : undefined);
-  const names = detail !== undefined && target.schema !== undefined ? textProperties(service.store, target.schema) : [];
-  const edit = names.length === 0 ? undefined : () => {
-    setDraft(Object.fromEntries(names.map((name) => [name, textOf(detail!.values.get(name))])));
+  const fields = detail !== undefined && target.schema !== undefined ? editableProperties(service.store, target.schema) : [];
+  const edit = fields.length === 0 ? undefined : () => {
+    setDraft(draftOf(fields, detail!.values));
     setFailed(undefined);
     setMode("edit");
   };
   const save = async (): Promise<void> => {
     if (detail === undefined) return;
-    const changed = Object.fromEntries(names.filter((name) => (draft[name] ?? "") !== textOf(detail.values.get(name)))
-      .map((name) => [name, draft[name] === "" ? null : draft[name]]));
+    const changed = changes(fields, draft, detail.values);
     if (Object.keys(changed).length === 0) { setMode("view"); return; }
     const key = target.key;
     setMode("save");
@@ -207,6 +284,7 @@ export function Inspector() {
               : loaded.state === "error" ? "Not available" : "Loading…"}
           </h2>
           {target.schema !== undefined && <div className={s.chipSchema}>{target.schema}</div>}
+          {detail !== undefined && <Byline object={detail.object} full />}
         </div>
         <button type="button" className={s.button} onClick={close} disabled={mode === "save"}
           aria-label="Close the inspector">✕</button>
@@ -215,9 +293,9 @@ export function Inspector() {
         {loaded.state === "loading" && edited === undefined && <Loading />}
         {loaded.state === "error" && edited === undefined && <Failure error={loaded.error} />}
         {detail !== undefined && (mode === "view"
-          ? <Detail target={target} detail={detail} onEdit={edit} />
-          : <Editor names={names} draft={draft} disabled={mode === "save"} error={failed}
-            onChange={(name, text) => setDraft((d) => ({ ...d, [name]: text }))} />)}
+          ? <Detail target={target} detail={detail} onEdit={edit} refresh={refresh} />
+          : <Editor fields={fields} draft={draft} disabled={mode === "save"} error={failed}
+            onChange={(name, value) => setDraft((d) => ({ ...d, [name]: value }))} />)}
       </div>
       <footer className={s.inspectorActions}>
         {mode === "view" ? (
