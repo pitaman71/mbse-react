@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
-import type { AdjacentView, DetailView, EntryView, ObjectView } from "../data/views.js";
+import { type AdjacentView, type DetailView, type EntryView, type ObjectView, ownership } from "../data/views.js";
 import { Byline, byCreation } from "./Byline.js";
 import { AdjacentChip, Failure, Loading } from "./Chip.js";
 import { useLoad } from "./load.js";
@@ -105,14 +105,13 @@ function AdjacencyList({ reference, adjacency, entries, refresh }: {
   const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
   return (
     <section className={s.section} aria-label={adjacency.name}>
-      <h3 className={s.sectionTitle}>
+      <h3 className={s.sectionTitle} title={adjacency.relation}>
         {adjacency.name} <span className={s.chipSchema}>({shown.length})</span>
         {adjacency.link !== undefined && adjacency.linked.length > 0 && !adjacency.owner && !proposing && (
           <button type="button" className={s.addButton} onClick={() => setProposing(true)}
             aria-label={`Add to ${adjacency.name}`}>+</button>
         )}
       </h3>
-      <p className={s.muted}>{adjacency.relation}</p>
       {proposing && <Proposer reference={reference} adjacency={adjacency} refresh={refresh}
         onDone={() => setProposing(false)} />}
       <div className={s.chipGrid}>
@@ -150,11 +149,34 @@ function Editable({ onEdit, children }: { readonly onEdit?: () => void; readonly
   );
 }
 
+/** The inspected object's ownership path, as a breadcrumb (FEA-003's identity): its singleton, then each owning entry's
+ * key, itself last; each ancestor inspected on a click. It stands in for the ownership adjacency's list (CAP-019). */
+function Breadcrumb({ target }: { readonly target: Target }) {
+  const service = useService();
+  const { inspect } = useNavigation();
+  const crumbs = ownership(service.store, target.key);
+  if (crumbs.length < 2) return null;
+  return (
+    <nav className={s.breadcrumb} aria-label="ownership">
+      {crumbs.map((crumb, i) => (
+        <span key={crumb.key}>
+          {i > 0 && <span aria-hidden="true"> › </span>}
+          {i === crumbs.length - 1 ? <span aria-current="page">{crumb.name}</span>
+            : <button type="button" className={s.crumb}
+              onClick={() => inspect({ key: crumb.key, schema: crumb.schema })}>{crumb.name}</button>}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 function Detail({ target, detail, onEdit, refresh }: {
   readonly target: Target; readonly detail: DetailView; readonly onEdit?: () => void; readonly refresh: Refresh;
 }) {
   const service = useService();
-  const named = target.schema === undefined ? undefined : adjacencies(service.store, target.schema);
+  // the ownership adjacency is the breadcrumb's (Breadcrumb), not a list
+  const named = target.schema === undefined ? undefined
+    : adjacencies(service.store, target.schema).filter((a) => !a.owner);
   return (
     <>
       {detail.object.summary !== "" && (
@@ -251,11 +273,11 @@ export function Inspector() {
     <aside className={s.inspector} aria-label="inspector">
       <header className={s.inspectorHead}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 className={s.inspectorLabel}>
+          <h2 className={s.inspectorLabel} title={target.schema}>
             {label !== undefined ? <Markdown text={label} inline />
               : loaded.state === "error" ? "Not available" : "Loading…"}
           </h2>
-          {target.schema !== undefined && <div className={s.chipSchema}>{target.schema}</div>}
+          <Breadcrumb target={target} />
           {detail !== undefined && <Byline object={detail.object} full />}
         </div>
         <button type="button" className={s.button} onClick={close} disabled={mode === "save"}

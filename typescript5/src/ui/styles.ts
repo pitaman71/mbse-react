@@ -164,6 +164,14 @@ export const addButton = css({
 });
 export const formActions = css({ display: "flex", gap: "0.5rem", justifyContent: "flex-end" });
 
+/** An inspected object's ownership path (decision 34). */
+export const breadcrumb = css({ fontSize: "0.8rem", color: "var(--muted)", overflowWrap: "anywhere",
+  "& [aria-current=page]": { color: "var(--text)" } });
+export const crumb = css({
+  font: "inherit", color: "var(--accent)", background: "none", border: "none", padding: 0, cursor: "pointer",
+  "&:hover, &:focus-visible": { textDecoration: "underline", outline: "none" },
+});
+
 /** CAP-020: an object's byline. */
 export const byline = css({
   display: "flex", flexWrap: "wrap", gap: "0.25rem 0.75rem", fontSize: "0.8rem", color: "var(--muted)",
