@@ -214,7 +214,7 @@ type Mode = "view" | "edit" | "save";
  * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
  * value, then save mode while the service commits, and view mode again with what the service gives back. */
 export function Inspector() {
-  const { place, close } = useNavigation();
+  const { place, close, back, forward } = useNavigation();
   const service = useService();
   const target = place.inspect;
   const body = useRef<HTMLDivElement>(null);
@@ -286,8 +286,8 @@ export function Inspector() {
       <footer className={s.inspectorActions}>
         {mode === "view" ? (
           <>
-            <button type="button" className={s.button} onClick={() => window.history.back()}>Back</button>
-            <button type="button" className={s.button} onClick={() => window.history.forward()}>Forward</button>
+            <button type="button" className={s.button} onClick={back} disabled={back === undefined}>Back</button>
+            <button type="button" className={s.button} onClick={forward} disabled={forward === undefined}>Forward</button>
             {edit !== undefined && <button type="button" className={s.button} onClick={edit}>Edit</button>}
           </>
         ) : (
