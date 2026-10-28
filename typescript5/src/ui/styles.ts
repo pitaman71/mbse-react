@@ -1,5 +1,5 @@
 /** The app's styles, in TypeScript (CSS-in-TS, Emotion's `css`): tokens as CSS custom properties, light and dark, and
- * the responsive layout (VISUALIZATION.md, Priorities: views fully responsive; auto scrolling on all views). */
+ * the responsive layout ([mbse-basis/proposals/PRIORITIES.md, single-user demo](../../../../mbse-basis/proposals/PRIORITIES.md#single-user-demo-with-schema-driven-index-site-for-any-mbse-app): views fully responsive; auto scrolling on all views). */
 
 import { css, injectGlobal } from "@emotion/css";
 
