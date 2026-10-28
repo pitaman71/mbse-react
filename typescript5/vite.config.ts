@@ -1,7 +1,12 @@
 /** The app's build and test configuration (Vite and Vitest).
  *
  * Its source is the golden corpus by default; `MBSE_REST_URL=http://localhost:8000 npm run dev` points it at a live
- * mbse-rest server instead, through the dev server's proxy at `/rest`, so that the browser sees one origin. */
+ * mbse-rest server instead, through the dev server's proxy at `/rest`, so that the browser sees one origin: mbse-rest's
+ * stub server sets no CORS headers. A production build calls `MBSE_REST_URL` directly, which then needs CORS from the
+ * server.
+ *
+ * Vite 7, not 8: Vite 8 transforms TypeScript with Oxc, which refuses mbse-schemas' non-const namespace exports
+ * (`Schemas.ts`, `export let Ref`); Vite 7 transforms with esbuild, as mbse-schemas' own portability test bundles. */
 
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";

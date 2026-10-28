@@ -11,9 +11,11 @@ The schema, object and relation browsers and the object inspector (mbse-basis [F
   ([`mbse-basis/docs/features/`](../mbse-basis/docs/features), [`mbse-basis/docs/capabilities/`](../mbse-basis/docs/capabilities)), by ID; cite those IDs, each introduced
   by bridge language (mbse-basis [`docs/README.md`](../mbse-basis/docs/README.md), Rules for writing items, "Bridge, don't duplicate").
 - **Type-check and test** from `typescript5/`: `npm install && npm run typecheck && npm test` (Vitest, one-shot,
-  against the golden corpus). Decisions taken where the capabilities are silent are in [`docs/DESIGN.md`](docs/DESIGN.md).
+  against the golden corpus): Vitest with Testing Library in jsdom, against the corpus through the same fetch the app
+  uses. Decisions taken where the capabilities are silent are in their detail files in mbse-basis (Decided by an agent,
+  for review), each labeled mbse-react.
 - **It reads logical views through mbse-rest's client** (`@mbse/rest/Services/Rest/Client`: `Client`, `Views`), whose
-  calls, templates and view kinds are mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md). Develop against mbse-rest's golden corpus
+  calls, templates and view kinds are [FEA-003: no-code logical views](../mbse-basis/docs/features/FEA-003.md)'s and its capabilities', as built. Develop against mbse-rest's golden corpus
   ([`mbse-rest/conformance/`](../mbse-rest/conformance)) before a server runs, serving it through a fetch of your own as mbse-rest's
   `typescript5/tests/client.test.ts` does. mbse-rest is a sibling checkout, pinned in `siblings.json` (edited by hand
   until `polyrepo.py pin` supports a TypeScript-only repository).
@@ -25,12 +27,14 @@ The schema, object and relation browsers and the object inspector (mbse-basis [F
   every sibling). Never commit to `main`. When done, open one pull request per repository with `gh pr create`,
   listing the decisions for review.
 - Where the capabilities are silent, take the simplest default consistent with them and with mbse-schemas, record it
-  under "Decided by the agent, for review" (for the REST contract, in mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md), from mbse-rest's
-  own work; otherwise in this repository's docs), and keep going.
+  in the detail file of the capability it serves, in mbse-basis' [`docs/capabilities/`](../mbse-basis/docs/capabilities), under "Decided by
+  an agent, for review", labeled with this repository's name and the next number, and keep going.
 - Stop and report (do not work around) for: a gap or bug in mbse-schemas; an outward-facing action beyond pushing
   branches and opening pull requests in these repositories; anything destructive (force-push, deleting branches or
   files outside your work, rewriting history); a contradiction in a capability that changes what gets built.
-- Never edit a sibling from another repository's work; never edit mbse-schemas or mbse-basis.
+- Never edit a sibling from another repository's work; never edit mbse-schemas; in mbse-basis,
+  edit only a capability's or feature's As built, Blocked and Decided sections, in a pull request beside this
+  repository's.
 - Never write to `~/.claude/projects/*/memory/` or any hidden memory: what is worth keeping goes in the repository.
 - Conventions: Python with uv (`uv sync`, `uv run pytest`), never pip; package capitalization as mbse-schemas has it
   (`mbse.Services.Rest`); "property", never "field", and "schema", never "type", for schema-governed things. Models

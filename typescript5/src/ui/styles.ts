@@ -1,5 +1,10 @@
 /** The app's styles, in TypeScript (CSS-in-TS, Emotion's `css`): tokens as CSS custom properties, light and dark, and
- * the responsive layout ([mbse-basis/proposals/PRIORITIES.md, single-user demo](../../../../mbse-basis/proposals/PRIORITIES.md#single-user-demo-with-schema-driven-index-site-for-any-mbse-app): views fully responsive; auto scrolling on all views). */
+ * the responsive layout ([mbse-basis/proposals/PRIORITIES.md, single-user demo](../../../../mbse-basis/proposals/PRIORITIES.md#single-user-demo-with-schema-driven-index-site-for-any-mbse-app): views fully responsive; auto scrolling on all views).
+ *
+ * Emotion's `css` takes typed style objects and returns a class name, so it needs no Babel plugin, no JSX pragma and no
+ * build step of its own: the same code runs under Vite, Vitest's jsdom and a production build. Zero-runtime libraries
+ * (vanilla-extract, Linaria) need a bundler plugin in every one of those, and styled-components a wrapper component per
+ * style; nothing here needs either. */
 
 import { css, injectGlobal } from "@emotion/css";
 
