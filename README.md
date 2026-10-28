@@ -10,10 +10,11 @@ per app repeats that, and drifts from it. This UI reads only the schemas and the
 for them (label, chip, detail, adjacency), so a new app, or a changed schema, needs no UI code to be browsed: the
 schema, object and relation browsers and the object inspector (mbse-basis [FEA-004: index site browser views](../mbse-basis/docs/features/FEA-004.md) and [FEA-005: inspector views](../mbse-basis/docs/features/FEA-005.md)) work for any
 app the service holds. It reads the service only through mbse-rest's TypeScript client (`@mbse/rest`), whose calls are
-mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md).
+mbse-basis [FEA-003: no-code logical views](../mbse-basis/docs/features/FEA-003.md#the-client)'s client, as built.
 
 It is React and TypeScript, with its styles in TypeScript (Emotion), responsive from a phone to a wide screen. How it
-is built, and every choice made where the specification is silent, is in [docs/DESIGN.md](docs/DESIGN.md).
+is built, and every choice made where the specification is silent, is in the As built and Decided sections of the
+capabilities it builds, in mbse-basis' [`docs/capabilities/`](../mbse-basis/docs/capabilities).
 
 ## Running it
 
