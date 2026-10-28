@@ -19,7 +19,7 @@ export function configured(): Config {
   return { source: "live", base: import.meta.env.DEV ? "/rest" : import.meta.env.MBSE_REST_URL };
 }
 
-/** This tab's session (CAP-015): an id made once per tab and kept for its life (`sessionStorage`), the browser's
+/** This tab's session ([CAP-015: transaction provenance](../../../mbse-basis/docs/capabilities/CAP-015.md)): an id made once per tab and kept for its life (`sessionStorage`), the browser's
  * locale, and its kind of device. The service stamps the id and its identity on each write. */
 export function tabSession(): { id: string; locale: string; device: string } {
   let id: string | null = null;

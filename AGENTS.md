@@ -1,6 +1,6 @@
 # Guide for AI agents
 
-The schema, object and relation browsers and the object inspector (mbse-basis FEA-004 and FEA-005), reading logical views through mbse-rest's client (`@mbse/rest`). React, TypeScript and CSS-in-TS, in `typescript5/` (`@mbse/react`).
+The schema, object and relation browsers and the object inspector (mbse-basis [FEA-004: index site browser views](../mbse-basis/docs/features/FEA-004.md) and [FEA-005: inspector views](../mbse-basis/docs/features/FEA-005.md)), reading logical views through mbse-rest's client (`@mbse/rest`). React, TypeScript and CSS-in-TS, in `typescript5/` (`@mbse/react`).
 
 ## Invariants
 
@@ -8,13 +8,13 @@ The schema, object and relation browsers and the object inspector (mbse-basis FE
 - **Siblings are checkouts beside this repository**, pinned by commit in `siblings.json`. Other agents may be working
   in them: never edit a sibling from here.
 - **What this repository builds is specified in mbse-basis' features and capabilities**
-  (`../mbse-basis/docs/features/`, `../mbse-basis/docs/capabilities/`), by ID; cite those IDs, each introduced
-  by bridge language (mbse-basis `docs/README.md`, Rules for writing items, "Bridge, don't duplicate").
+  ([`mbse-basis/docs/features/`](../mbse-basis/docs/features), [`mbse-basis/docs/capabilities/`](../mbse-basis/docs/capabilities)), by ID; cite those IDs, each introduced
+  by bridge language (mbse-basis [`docs/README.md`](../mbse-basis/docs/README.md), Rules for writing items, "Bridge, don't duplicate").
 - **Type-check and test** from `typescript5/`: `npm install && npm run typecheck && npm test` (Vitest, one-shot,
-  against the golden corpus). Decisions taken where the capabilities are silent are in `docs/DESIGN.md`.
+  against the golden corpus). Decisions taken where the capabilities are silent are in [`docs/DESIGN.md`](docs/DESIGN.md).
 - **It reads logical views through mbse-rest's client** (`@mbse/rest/Services/Rest/Client`: `Client`, `Views`), whose
-  calls, templates and view kinds are mbse-rest's `docs/CONTRACT.md`. Develop against mbse-rest's golden corpus
-  (`../mbse-rest/conformance/`) before a server runs, serving it through a fetch of your own as mbse-rest's
+  calls, templates and view kinds are mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md). Develop against mbse-rest's golden corpus
+  ([`mbse-rest/conformance/`](../mbse-rest/conformance)) before a server runs, serving it through a fetch of your own as mbse-rest's
   `typescript5/tests/client.test.ts` does. mbse-rest is a sibling checkout, pinned in `siblings.json` (edited by hand
   until `polyrepo.py pin` supports a TypeScript-only repository).
 
@@ -25,7 +25,7 @@ The schema, object and relation browsers and the object inspector (mbse-basis FE
   every sibling). Never commit to `main`. When done, open one pull request per repository with `gh pr create`,
   listing the decisions for review.
 - Where the capabilities are silent, take the simplest default consistent with them and with mbse-schemas, record it
-  under "Decided by the agent, for review" (for the REST contract, in mbse-rest's `docs/CONTRACT.md`, from mbse-rest's
+  under "Decided by the agent, for review" (for the REST contract, in mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md), from mbse-rest's
   own work; otherwise in this repository's docs), and keep going.
 - Stop and report (do not work around) for: a gap or bug in mbse-schemas; an outward-facing action beyond pushing
   branches and opening pull requests in these repositories; anything destructive (force-push, deleting branches or

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A React UI for any mbse-schemas app (mbse-basis FEA-004 and FEA-005)",
+  "description": "A React UI for any mbse-schemas app (mbse-basis [FEA-004: index site browser views](../../mbse-basis/docs/features/FEA-004.md) and [FEA-005: inspector views](../../mbse-basis/docs/features/FEA-005.md))",
   "exports": {
     ".": "./src/index.ts"
   },

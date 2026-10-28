@@ -1,5 +1,5 @@
 /** Where the user is: which browser view, kept in the address bar, and which object the inspector shows, kept in
- * neither the browser's history nor one of the inspector's own (FEA-005): inspecting an object replaces what the
+ * neither the browser's history nor one of the inspector's own ([FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md)): inspecting an object replaces what the
  * inspector shows, and closing it clears it. Switching views replaces the address bar's entry. */
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
@@ -13,7 +13,7 @@ export interface Bound {
   readonly schema?: string | undefined;
 }
 
-/** CAP-023: what anchors a relation inspector besides its object: a relation that holds the object, the link the
+/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): what anchors a relation inspector besides its object: a relation that holds the object, the link the
  * object fills in it, and bindings for the relation's other links and property values on it, which define the
  * sibling context. */
 export interface RelationAnchor {
@@ -23,8 +23,8 @@ export interface RelationAnchor {
   readonly properties: Readonly<Record<string, unknown>>;
 }
 
-/** An object to inspect: a single object inspector's (CAP-017), anchored by its schema and ID (its reference); or,
- * with an anchor, a relation inspector's (CAP-023). */
+/** An object to inspect: a single object inspector's ([CAP-017: object inspector](../../../../mbse-basis/docs/capabilities/CAP-017.md)), anchored by its schema and ID (its reference); or,
+ * with an anchor, a relation inspector's ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
 export interface Target extends Bound {
   readonly anchor?: RelationAnchor | undefined;
 }
@@ -44,7 +44,7 @@ export const format = (view: View): string => `#/${view}`;
 
 interface Navigation {
   readonly place: Place;
-  /** FEA-005's gesture: show `target` in the inspector, in place of what it shows. */
+  /** [FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md)'s gesture: show `target` in the inspector, in place of what it shows. */
   readonly inspect: (target: Target) => void;
   readonly show: (view: View) => void;
   readonly close: () => void;

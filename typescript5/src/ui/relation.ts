@@ -1,11 +1,11 @@
-/** CAP-023: the relation inspector's sibling context, and the CAP-008 views it and the adjacency lists read. */
+/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's sibling context, and the [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) views it and the adjacency lists read. */
 
 import { adjacencies, type Adjacency } from "../data/schemas.js";
 import type { AdjacentView, EntryView, ObjectView, Service } from "../data/views.js";
 import { byCreation } from "./Byline.js";
 import type { Bound, RelationAnchor, Target } from "./navigation.js";
 
-/** CAP-008 from `reference` through `adjacency`, for each schema its entries may link, the results together; the
+/** [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) from `reference` through `adjacency`, for each schema its entries may link, the results together; the
  * refusals beside them, and whether every one was refused. */
 export async function adjacentViews(service: Service, reference: unknown, adjacency: Adjacency):
     Promise<{ readonly views: AdjacentView[]; readonly errors: Error[]; readonly all: boolean }> {
@@ -19,8 +19,8 @@ export async function adjacentViews(service: Service, reference: unknown, adjace
   return { views, errors, all: errors.length === settled.length };
 }
 
-/** CAP-023: the anchor of an object inspected from an adjacency list (or a
- * directory's section on the Objects tab, CAP-010): the adjacency's relation, the link the object
+/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the anchor of an object inspected from an adjacency list (or a
+ * directory's section on the Objects tab, [CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)): the adjacency's relation, the link the object
  * fills in the entry, and the adjacency's own link bound to the list's owner. None where the link is not known. */
 export function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView, entry: EntryView): RelationAnchor | undefined {
   const link = entry.links.find((l) => l.link !== adjacency.me && l.object.key === object.key)?.link ?? adjacency.link;
@@ -28,8 +28,8 @@ export function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView,
     : { relation: adjacency.relation, link, links: { [adjacency.me]: owner }, properties: {} };
 }
 
-/** The anchor's sibling context, in an adjacency list's order (CAP-021): every object the relation's entries link
- * through the anchor's link, of the entries that agree with its bindings, each once. Read through CAP-008 from a bound
+/** The anchor's sibling context, in an adjacency list's order ([CAP-021: lists ordered by creation](../../../../mbse-basis/docs/capabilities/CAP-021.md)): every object the relation's entries link
+ * through the anchor's link, of the entries that agree with its bindings, each once. Read through [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) from a bound
  * link whose object's schema names an adjacency to the relation through it; the other bindings, links and property
  * values, are matched against each entry. Empty where no bound link has such an adjacency. */
 export async function siblings(service: Service, anchor: RelationAnchor): Promise<Target[]> {

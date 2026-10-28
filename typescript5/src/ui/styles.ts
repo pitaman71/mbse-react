@@ -59,14 +59,14 @@ export const sectionTitle = css({ margin: "0 0 0.25rem", fontSize: "1rem", fontW
 export const muted = css({ color: "var(--muted)", fontSize: "0.85rem", margin: "0 0 0.5rem" });
 export const error = css({ color: "var(--danger)", fontSize: "0.85rem", margin: "0.25rem 0", overflowWrap: "anywhere" });
 
-/** CAP-009's scrollable list of chips: one row, scrolled sideways. */
+/** [CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md)'s scrollable list of chips: one row, scrolled sideways. */
 /** A list of chips: one row, scrolled sideways where it overflows, never wrapped. */
 export const chipRow = css({
   display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(min(85%, 14rem), 18rem)", gap: "0.75rem",
   overflowX: "auto", overscrollBehaviorX: "contain", paddingBottom: "0.5rem", scrollSnapType: "x proximity",
   "& > *": { scrollSnapAlign: "start" },
 });
-/** An adjacency list's row (CAP-019): wider, as each chip holds an entry's properties beside a pill. */
+/** An adjacency list's row ([CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md)): wider, as each chip holds an entry's properties beside a pill. */
 export const adjacentRow = css({ gridAutoColumns: "minmax(min(85%, 16rem), 24rem)" });
 
 export const chip = css({
@@ -89,11 +89,11 @@ export const props = css({
     textOverflow: "ellipsis", whiteSpace: "nowrap" },
 });
 
-/** CAP-011: an entry's chip aside its linked objects' chips. */
+/** [CAP-011: relation browser](../../../../mbse-basis/docs/capabilities/CAP-011.md): an entry's chip aside its linked objects' chips. */
 export const entryRow = css({ gridAutoColumns: "minmax(min(85%, 12rem), 16rem)", gap: "0.5rem" });
 export const entryChip = css({ background: "var(--accent-soft)" });
 
-/** CAP-019: an adjacency's preview, one chip in two columns: the entry's properties, then the linked object's pill. */
+/** [CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md): an adjacency's preview, one chip in two columns: the entry's properties, then the linked object's pill. */
 export const adjacentChip = css({
   display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, auto)", gap: "0.75rem", alignItems: "center",
 });
@@ -107,7 +107,7 @@ export const pill = css({
   "&:hover, &:focus-visible": { borderColor: "var(--accent)", outline: "none" },
   "&[aria-current=true]": { borderColor: "var(--accent)" },
 });
-/** CAP-020 in a pill: who created the object and when, above its `ID : name`. */
+/** [CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md) in a pill: who created the object and when, above its `ID : name`. */
 export const pillHeader = css({ fontStyle: "italic", fontSize: "0.72rem", color: "var(--muted)", maxWidth: "100%",
   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
 export const pillBody = css({ maxWidth: "100%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" });
@@ -117,7 +117,7 @@ export const prose = css({
 });
 export const pillKey = css({ color: "var(--muted)", fontVariantNumeric: "tabular-nums" });
 
-/** FEA-005: the inspector. Its label stays at the top and its actions at the bottom while the rest scrolls between. */
+/** [FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md): the inspector. Its label stays at the top and its actions at the bottom while the rest scrolls between. */
 export const inspector = css({
   display: "grid", gridTemplateRows: "auto minmax(0, 1fr) auto", minHeight: 0, background: "var(--surface)",
   borderLeft: "1px solid var(--line)",
@@ -134,7 +134,7 @@ export const inspectorActions = css({
   borderTop: "1px solid var(--line)",
 });
 export const inspectorActionsCenter = css({ gridColumn: 2, gridRow: 1, display: "flex", gap: "0.5rem", justifyContent: "center" });
-/** CAP-023: the relation inspector's arrows, at the footer's start and end. */
+/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's arrows, at the footer's start and end. */
 export const footerStart = css({ gridColumn: 1, gridRow: 1, justifySelf: "start" });
 export const footerEnd = css({ gridColumn: 3, gridRow: 1, justifySelf: "end" });
 export const iconButton = css({
@@ -150,7 +150,7 @@ export const button = css({
 export const detailProps = css(props, { fontSize: "0.9rem", "& dd": { whiteSpace: "normal", overflowWrap: "anywhere" } });
 export const loading = css({ color: "var(--muted)", fontStyle: "italic" });
 
-/** CAP-014: the inspector's editor, and a value that a click opens it on. */
+/** [CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md): the inspector's editor, and a value that a click opens it on. */
 export const editor = css({ display: "grid", gap: "0.75rem", "& label": { display: "grid", gap: "0.25rem" } });
 export const editorName = css({ fontSize: "0.85rem", color: "var(--muted)" });
 export const textarea = css({
@@ -166,7 +166,7 @@ export const checkboxField = css({
   display: "flex !important", alignItems: "center", gap: "0.5rem", "& input": { width: "1.1rem", height: "1.1rem" },
 });
 
-/** CAP-018: a linked object with its byline, "+", and a form's actions. */
+/** [CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md): a linked object with its byline, "+", and a form's actions. */
 export const addButton = css({
   marginLeft: "0.5rem", border: "1px solid var(--line)", background: "var(--surface)", color: "var(--accent)",
   borderRadius: 999, width: "1.6rem", height: "1.6rem", lineHeight: 1, cursor: "pointer", font: "inherit",
@@ -182,7 +182,7 @@ export const crumb = css({
   "&:hover, &:focus-visible": { textDecoration: "underline", outline: "none" },
 });
 
-/** CAP-020: an object's byline. */
+/** [CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md): an object's byline. */
 export const byline = css({
   display: "flex", flexWrap: "wrap", gap: "0.25rem 0.75rem", fontSize: "0.8rem", color: "var(--muted)",
   "& strong": { fontWeight: 600, color: "var(--text)" },

@@ -1,5 +1,5 @@
-/** A chip (CAP-006): an object's label, its schema, its summary and up to three other properties. A chip of an object
- * is FEA-005's gesture target: a click or a tap inspects it. */
+/** A chip ([CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md)): an object's label, its schema, its summary and up to three other properties. A chip of an object
+ * is [FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md)'s gesture target: a click or a tap inspects it. */
 
 import { useEffect, useRef } from "react";
 import type { EntryView, ObjectView } from "../data/views.js";
@@ -32,7 +32,7 @@ function useScrolled<T extends HTMLElement>(current: boolean) {
   return ref;
 }
 
-/** An object's chip, inspected on a click (with an anchor, in a relation inspector, CAP-023); scrolled into view when
+/** An object's chip, inspected on a click (with an anchor, in a relation inspector, [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)); scrolled into view when
  * it is the one inspected (auto scrolling). */
 export function ObjectChip({ object, showSchema = true, anchor }: {
   readonly object: ObjectView; readonly showSchema?: boolean; readonly anchor?: RelationAnchor | undefined;
@@ -59,7 +59,7 @@ export function ObjectChip({ object, showSchema = true, anchor }: {
   );
 }
 
-/** What names a linked object beside its ID, and whether that is prose: its own label; where it has none (CAP-005's
+/** What names a linked object beside its ID, and whether that is prose: its own label; where it has none ([CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md)'s
  * fallback, its schema's name and its ID), its summary, else its first text property (a comment's text), either prose;
  * else its schema's name. */
 function nameOf(object: ObjectView): { readonly name: string; readonly prose: boolean } {
@@ -70,7 +70,7 @@ function nameOf(object: ObjectView): { readonly name: string; readonly prose: bo
   return text === undefined ? { name: object.schema ?? object.id, prose: false } : { name: text, prose: true };
 }
 
-/** A pill's header, where the object has a creation in its provenance (CAP-020): `{identity} @ {datestamp}`. */
+/** A pill's header, where the object has a creation in its provenance ([CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md)): `{identity} @ {datestamp}`. */
 function PillHeader({ object }: { readonly object: ObjectView }) {
   const created = object.provenance.created;
   if (created === undefined) return null;
@@ -81,10 +81,10 @@ function PillHeader({ object }: { readonly object: ObjectView }) {
   );
 }
 
-/** An adjacency's preview (CAP-019): one chip per entry and linked object, in two columns: the entry's properties on
+/** An adjacency's preview ([CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md)): one chip per entry and linked object, in two columns: the entry's properties on
  * the left, where it has any; on the right, a pill of the linked object, inspected on a click: a header of who created
- * it and when, where its provenance says (CAP-020), then `ID : name`, wrapping where its name is prose. With an
- * anchor, the click opens a relation inspector (CAP-023). */
+ * it and when, where its provenance says ([CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md)), then `ID : name`, wrapping where its name is prose. With an
+ * anchor, the click opens a relation inspector ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
 export function AdjacentChip({ object, entry, anchor }: {
   readonly object: ObjectView; readonly entry: EntryView; readonly anchor?: RelationAnchor | undefined;
 }) {
@@ -108,7 +108,7 @@ export function AdjacentChip({ object, entry, anchor }: {
   );
 }
 
-/** A relation entry's chip (CAP-006 of an entry): its relation and its properties. An entry is not an object, so it is
+/** A relation entry's chip ([CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md) of an entry): its relation and its properties. An entry is not an object, so it is
  * not inspected. */
 export function EntryChip({ entry }: { readonly entry: EntryView }) {
   return (

@@ -1,4 +1,4 @@
-/** CAP-014: every `Schemas.OfStr` value is read as markdown. Inline, for one-line places (a label, a chip), paragraphs
+/** [CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md): every `Schemas.OfStr` value is read as markdown. Inline, for one-line places (a label, a chip), paragraphs
  * are unwrapped and links shown as their text, so that a chip stays one button and a label one line. */
 
 import ReactMarkdown from "react-markdown";
@@ -10,7 +10,7 @@ export function Markdown({ text, inline = false }: { readonly text: string; read
     : <ReactMarkdown>{text}</ReactMarkdown>;
 }
 
-/** A property's value: text as markdown (CAP-014), a boolean as a checkbox (CAP-022), anything else in full. */
+/** A property's value: text as markdown ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md)), a boolean as a checkbox ([CAP-022: booleans as checkboxes](../../../../mbse-basis/docs/capabilities/CAP-022.md)), anything else in full. */
 export function Value({ value, inline = false, name }: {
   readonly value: unknown; readonly inline?: boolean; readonly name?: string;
 }) {

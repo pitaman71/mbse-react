@@ -1,7 +1,7 @@
 /** The logical views the UI shows, read through mbse-rest's client (`@mbse/rest`): each request built by the client
  * (`Views.request`), each frame read back by it, and shaped here into what a chip, a section or the inspector shows.
  * Labels, summaries and chips are the client's (`Views.label`, `Views.summary`, `Views.chip`, `Views.entryLabel`), so
- * CAP-005's convention and fallbacks are applied in one place, mbse-rest's. */
+ * [CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md)'s convention and fallbacks are applied in one place, mbse-rest's. */
 
 import { Client, newStore, Views } from "@mbse/rest/Services/Rest/Client";
 import { JSON as J } from "@mbse/schemas/Framework";
@@ -17,16 +17,16 @@ export interface ObjectView {
   readonly key: string;
   /** Its ID: its path's last key (`Views.lastKey`), its owning entry's key values, or a singleton's name. */
   readonly id: string;
-  /** Its schema's registered name, where the UI knows it (CAP-005 uses it in the label's fallback). */
+  /** Its schema's registered name, where the UI knows it ([CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md) uses it in the label's fallback). */
   readonly schema: string | undefined;
-  /** CAP-005. */
+  /** [CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md). */
   readonly label: string;
-  /** CAP-005; empty where it holds none. */
+  /** [CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md); empty where it holds none. */
   readonly summary: string;
-  /** The other properties the frame assigns it, besides its label's and its summary's: a chip's (CAP-006), or every
-   * other one a detail holds (CAP-007). */
+  /** The other properties the frame assigns it, besides its label's and its summary's: a chip's ([CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md)), or every
+   * other one a detail holds ([CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md)). */
   readonly properties: ReadonlyMap<string, unknown>;
-  /** CAP-020: who created it and when, and who last wrote it and when, where the frame carries it (CAP-015). */
+  /** [CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md): who created it and when, and who last wrote it and when, where the frame carries it ([CAP-015: transaction provenance](../../../../mbse-basis/docs/capabilities/CAP-015.md)). */
   readonly provenance: { readonly created?: Views.Written; readonly modified?: Views.Written };
 }
 
@@ -36,7 +36,7 @@ export interface EntryView {
   readonly key: string;
   /** Its relation's registered name. */
   readonly relation: string;
-  /** CAP-005: its relation's name and its linked objects' labels. */
+  /** [CAP-005: label and summary view](../../../../mbse-basis/docs/capabilities/CAP-005.md): its relation's name and its linked objects' labels. */
   readonly label: string;
   /** Its properties. */
   readonly properties: ReadonlyMap<string, unknown>;
@@ -44,7 +44,7 @@ export interface EntryView {
   readonly links: readonly { readonly link: string; readonly object: ObjectView }[];
 }
 
-/** The app's entries a frame carries: not the framework's, such as provenance's (CAP-015), which `Views.provenance`
+/** The app's entries a frame carries: not the framework's, such as provenance's ([CAP-015: transaction provenance](../../../../mbse-basis/docs/capabilities/CAP-015.md)), which `Views.provenance`
  * reads. */
 const appEntries = (store: any, frame: Frame): unknown[] =>
   frame.entries.filter((entry) => !isFramework(Views.relationName(store, entry)));
@@ -97,23 +97,23 @@ export function entryOf(store: any, frame: Frame, entry: unknown): EntryView {
   };
 }
 
-/** The inspector's view of one object (CAP-007): its label, summary and every other property it holds, and the entries
+/** The inspector's view of one object ([CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md)): its label, summary and every other property it holds, and the entries
  * of its named adjacencies. */
 export interface DetailView {
   readonly object: ObjectView;
   /** Every property the object holds, its label's and summary's included, each its value: what an edit starts from
-   * (CAP-014). */
+   * ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md)). */
   readonly values: ReadonlyMap<string, unknown>;
   readonly entries: readonly EntryView[];
 }
 
-/** One linked object of a CAP-008 view: its chip, and the entry that links it. */
+/** One linked object of a [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) view: its chip, and the entry that links it. */
 export interface AdjacentView {
   readonly object: ObjectView;
   readonly entry: EntryView;
 }
 
-/** The service as the UI reaches it: mbse-rest's client and a store holding the app's schemas (CAP-002). Each view is
+/** The service as the UI reaches it: mbse-rest's client and a store holding the app's schemas ([CAP-002: named schema list](../../../../mbse-basis/docs/capabilities/CAP-002.md)). Each view is
  * requested once and kept, as the views are reads; a refused one is asked again next time. */
 export class Service {
   readonly store: any = newStore();
@@ -122,13 +122,13 @@ export class Service {
 
   constructor(readonly client: Client) {}
 
-  /** CAP-002: reads the schemas into the store, once. Gives every named schema's name. */
+  /** [CAP-002: named schema list](../../../../mbse-basis/docs/capabilities/CAP-002.md): reads the schemas into the store, once. Gives every named schema's name. */
   schemas(): Promise<string[]> {
     this.loaded ??= this.client.loadSchemas(this.store);
     return this.loaded;
   }
 
-  /** CAP-012: the frames of a view, its template filled by the client (`Views.request`), kept. */
+  /** [CAP-012: logical view endpoints](../../../../mbse-basis/docs/capabilities/CAP-012.md): the frames of a view, its template filled by the client (`Views.request`), kept. */
   async view(kind: Views.Kind, given: Readonly<Record<string, unknown>>, adjacency?: string): Promise<Frame[]> {
     await this.schemas();
     const request = Views.request(this.store, kind, given, adjacency);
@@ -142,20 +142,20 @@ export class Service {
     return found;
   }
 
-  /** CAP-006 over a schema's extent, loaded whole: each object's chip, in frame order. */
+  /** [CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md) over a schema's extent, loaded whole: each object's chip, in frame order. */
   async chips(schema: string): Promise<ObjectView[]> {
     await this.schemas();
     const frames = await this.view("chip", { x: this.store.registered(schema) });
     return frames.map((frame) => objectOf(this.store, frame, "x", schema));
   }
 
-  /** CAP-007 of one object: every property it holds, and its named adjacencies' entries. */
+  /** [CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md) of one object: every property it holds, and its named adjacencies' entries. */
   async detail(reference: unknown, schema?: string): Promise<DetailView> {
     const [frame] = await this.view("detail", { x: reference });
     return this.detailOf(frame, schema);
   }
 
-  /** CAP-014: writes `values` to the object's properties (`null` clears one), and gives its detail as the edit left
+  /** [CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md): writes `values` to the object's properties (`null` clears one), and gives its detail as the edit left
    * it, once the service has committed it. Every view kept is dropped, since an edit may change any of them. */
   async edit(reference: unknown, values: Readonly<Record<string, unknown>>, schema?: string): Promise<DetailView> {
     await this.schemas();
@@ -164,7 +164,7 @@ export class Service {
     return this.detailOf(frame, schema);
   }
 
-  /** CAP-018: proposes a new object of `schema` through `reference`'s `adjacency`, linked through `link`, with its
+  /** [CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md): proposes a new object of `schema` through `reference`'s `adjacency`, linked through `link`, with its
    * properties `values` and its entry's `entry`, and gives the inbound object's detail once committed. Every view
    * kept is dropped, as after an edit. */
   async propose(reference: unknown, adjacency: string, link: string, schema: string,
@@ -185,7 +185,7 @@ export class Service {
     };
   }
 
-  /** CAP-008: the objects of schema `linked` that `reference`'s adjacency `adjacency` links, each its chip and the entry
+  /** [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md): the objects of schema `linked` that `reference`'s adjacency `adjacency` links, each its chip and the entry
    * linking it. */
   async adjacency(reference: unknown, adjacency: string, linked: string): Promise<AdjacentView[]> {
     await this.schemas();
@@ -196,8 +196,8 @@ export class Service {
     });
   }
 
-  /** The entries every object of `schema` holds through its named adjacencies: CAP-007 with `x` given the schema, which
-   * ranges over its extent (CAP-004), loaded whole. The relation browser (CAP-011) reads them. */
+  /** The entries every object of `schema` holds through its named adjacencies: [CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md) with `x` given the schema, which
+   * ranges over its extent ([CAP-004: logical view templates](../../../../mbse-basis/docs/capabilities/CAP-004.md)), loaded whole. The relation browser ([CAP-011: relation browser](../../../../mbse-basis/docs/capabilities/CAP-011.md)) reads them. */
   async entries(schema: string): Promise<EntryView[]> {
     await this.schemas();
     const frames = await this.view("detail", { x: this.store.registered(schema) });
@@ -218,7 +218,7 @@ export interface Crumb {
   readonly schema: string | undefined;
 }
 
-/** The object's ownership path, from its singleton to itself (FEA-003's identity): each object its path passes, the
+/** The object's ownership path, from its singleton to itself ([FEA-003: no-code logical views](../../../../mbse-basis/docs/features/FEA-003.md)'s identity): each object its path passes, the
  * object itself last. A singleton's path is itself alone; an object whose key is not a path, empty. */
 export function ownership(store: any, key: string): Crumb[] {
   let path: any;
