@@ -8,7 +8,7 @@ browsed and inspected with no app-specific UI code.
 An MBSE app's schemas already say what its objects are, what properties they hold and how they relate. Building a UI
 per app repeats that, and drifts from it. This UI reads only the schemas and the logical views that mbse-rest serves
 for them (label, chip, detail, adjacency), so a new app, or a changed schema, needs no UI code to be browsed: the
-schema, object and relation browsers and the object inspector (VISUALIZATION.md, FEA-004 and FEA-005) work for any
+schema, object and relation browsers and the object inspector (mbse-basis FEA-004 and FEA-005) work for any
 app the service holds. It reads the service only through mbse-rest's TypeScript client (`@mbse/rest`), whose calls are
 mbse-rest's `docs/CONTRACT.md`.
 
