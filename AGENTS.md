@@ -8,7 +8,8 @@ The schema, object and relation browsers and the object inspector (mbse-basis FE
 - **Siblings are checkouts beside this repository**, pinned by commit in `siblings.json`. Other agents may be working
   in them: never edit a sibling from here.
 - **What this repository builds is specified in mbse-basis' features and capabilities**
-  (`../mbse-basis/docs/features/`, `../mbse-basis/docs/capabilities/`), by ID; cite those IDs rather than restate them.
+  (`../mbse-basis/docs/features/`, `../mbse-basis/docs/capabilities/`), by ID; cite those IDs, each introduced
+  by bridge language (mbse-basis `docs/README.md`, Rules for writing items, "Bridge, don't duplicate").
 - **Type-check and test** from `typescript5/`: `npm install && npm run typecheck && npm test` (Vitest, one-shot,
   against the golden corpus). Decisions taken where the capabilities are silent are in `docs/DESIGN.md`.
 - **It reads logical views through mbse-rest's client** (`@mbse/rest/Services/Rest/Client`: `Client`, `Views`), whose

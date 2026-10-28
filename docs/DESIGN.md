@@ -2,8 +2,8 @@
 
 The index site of mbse-basis FEA-001 (CAP-001): the schema, object and relation browsers (FEA-004: CAP-009,
 CAP-010, CAP-011) and the object inspector (FEA-005), reading the logical views of CAP-005 to CAP-008 through
-mbse-rest's client (`@mbse/rest`) as mbse-rest's `docs/CONTRACT.md` fixes them. This page cites those IDs rather than
-restating them.
+mbse-rest's client (`@mbse/rest`) as mbse-rest's `docs/CONTRACT.md` fixes them. This page cites those IDs, each with a
+bridge, rather than restating them in full.
 
 ## Where things are (`typescript5/src/`)
 
