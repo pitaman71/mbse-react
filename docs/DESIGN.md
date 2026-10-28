@@ -9,13 +9,13 @@ bridge, rather than restating them in full.
 
 | Module | What it does |
 |---|---|
-| `data/corpus.ts` | A fetch that serves mbse-rest's golden corpus ([`../mbse-rest/conformance/`](../../mbse-rest/conformance)), as mbse-rest's client tests do; a request it holds no case for is answered 599 with an error body |
+| `data/corpus.ts` | A fetch that serves mbse-rest's golden corpus ([`mbse-rest/conformance/`](../../mbse-rest/conformance)), as mbse-rest's client tests do; a request it holds no case for is answered 599 with an error body |
 | `data/schemas.ts` | What the UI reads from the schemas ([CAP-002: named schema list](../../mbse-basis/docs/capabilities/CAP-002.md)): which schemas each browser shows, each object schema's named adjacencies and the schemas their entries link |
 | `data/views.ts` | `Service`: the client and a store holding the app's schemas; each view requested with `Views.request` and shaped from frames with the client's readers (`Views.label`, `summary`, `chip`, `entryLabel`, `entryProperties`) |
-| `ui/Browsers.tsx` | [CAP-009](../../mbse-basis/docs/capabilities/CAP-009.md), [CAP-010](../../mbse-basis/docs/capabilities/CAP-010.md), [CAP-011](../../mbse-basis/docs/capabilities/CAP-011.md) |
-| `ui/Inspector.tsx` | [FEA-005](../../mbse-basis/docs/features/FEA-005.md), with [CAP-007: detail view](../../mbse-basis/docs/capabilities/CAP-007.md)'s detail and [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md)'s adjacency lists |
+| `ui/Browsers.tsx` | [CAP-009: schema browser](../../mbse-basis/docs/capabilities/CAP-009.md), [CAP-010: object browser](../../mbse-basis/docs/capabilities/CAP-010.md), [CAP-011: relation browser](../../mbse-basis/docs/capabilities/CAP-011.md) |
+| `ui/Inspector.tsx` | [FEA-005: inspector views](../../mbse-basis/docs/features/FEA-005.md), with [CAP-007: detail view](../../mbse-basis/docs/capabilities/CAP-007.md)'s detail and [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md)'s adjacency lists |
 | `ui/navigation.tsx` | The current view, kept in the address bar, and the object inspected |
-| `ui/relation.ts` | [CAP-023: relation inspector](../../mbse-basis/docs/capabilities/CAP-023.md)'s sibling context, and the [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md) views it and the adjacency lists read |
+| `ui/relation.ts` | [CAP-023: relation inspector](../../mbse-basis/docs/capabilities/CAP-023.md)'s sibling context, and the [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md) views it and the adjacency lists read |
 | `ui/styles.ts` | Every style, in TypeScript (Emotion), and the responsive layout |
 | `config.ts` | The source: the corpus (default) or a live server (`MBSE_REST_URL`) |
 
@@ -44,23 +44,23 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
    `References`) whose schema is marked `ref` (a reference object schema, singletons' included) and has a non-empty
    description. A schema's label is its registered name. Its chips are [CAP-006: chip view](../../mbse-basis/docs/capabilities/CAP-006.md) with `x` given the schema, in a row
    scrolled sideways.
-7. **CAP-010's sections** (revised for [CAP-010](../../mbse-basis/docs/capabilities/CAP-010.md)'s singletons): one per app schema that names a singleton, in the
-   store's order, headed by the singleton's name. Its chips are the objects the singleton holds: [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md) from the
-   singleton's reference ([CAP-006](../../mbse-basis/docs/capabilities/CAP-006.md) over its schema gives it) over each named adjacency but its ownership one, for each
+7. **CAP-010's sections** (revised for [CAP-010: object browser](../../mbse-basis/docs/capabilities/CAP-010.md)'s singletons): one per app schema that names a singleton, in the
+   store's order, headed by the singleton's name. Its chips are the objects the singleton holds: [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md) from the
+   singleton's reference ([CAP-006: chip view](../../mbse-basis/docs/capabilities/CAP-006.md) over its schema gives it) over each named adjacency but its ownership one, for each
    schema the adjacency links; each object once, in frame order. The singleton's own chip is not shown.
-8. **CAP-011's entries** come from [CAP-007](../../mbse-basis/docs/capabilities/CAP-007.md) with `x` given each app schema (CONTRACT.md: `detail` takes a schema as
+8. **CAP-011's entries** come from [CAP-007: detail view](../../mbse-basis/docs/capabilities/CAP-007.md) with `x` given each app schema (CONTRACT.md: `detail` takes a schema as
    `label` does), which holds every entry of each object's named adjacencies; each entry once, grouped by relation in
-   the store's order, in the order met. Each linked object's chip is its [CAP-006](../../mbse-basis/docs/capabilities/CAP-006.md) chip from the object browser's views,
+   the store's order, in the order met. Each linked object's chip is its [CAP-006: chip view](../../mbse-basis/docs/capabilities/CAP-006.md) chip from the object browser's views,
    or, where that is not loaded, its label view from the detail frame. An entry's own chip is its relation, its links'
    names and its properties. An entry is not an object, so it is not inspected.
 9. **The inspector's adjacency lists**: one section per named adjacency of the object's schema, in the schema's order.
    Its `y` is each schema that declares an adjacency to the same relation through another link (several where a link
-   is filled by several schemas, as `work.About`'s `topic`): one [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md) request each, their results together. Until
+   is filled by several schemas, as `work.About`'s `topic`): one [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md) request each, their results together. Until
    they arrive, or where every one is refused, the section shows the detail view's own entries, labelled from it. An
    adjacency with no entry in the detail view is not requested.
-10. **The schema of an object** is known where the UI asked for it (a chip of a schema's extent, [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md)'s `y`) or where
+10. **The schema of an object** is known where the UI asked for it (a chip of a schema's extent, [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md)'s `y`) or where
     exactly one schema fills the entry link it was reached through. Otherwise it is unknown: its label falls back to
-    its path's last key alone, and the inspector lists its entries by relation instead of by adjacency (no [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md)).
+    its path's last key alone, and the inspector lists its entries by relation instead of by adjacency (no [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md)).
     mbse-schemas finds a reference's schema from its path (`References._implied`), but privately; see the report.
 11. **The inspector's properties** are those besides its label's and its summary's (`Views.chip` over the detail
     frame), since the label is pinned at the top and the summary shown under it.
@@ -68,14 +68,14 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
     holds the view alone; switching views replaces its entry. Inspecting an object replaces what the inspector shows;
     closing it clears it. Going up the ownership path is the breadcrumb's (decision 34); going along an adjacency, its
     pill's. An inspected object is neither in a shared link nor kept over a reload.
-13. **The inspector's actions** are in its footer ([FEA-005](../../mbse-basis/docs/features/FEA-005.md)), centered side by side: Edit and Close, as icon buttons
+13. **The inspector's actions** are in its footer ([FEA-005: inspector views](../../mbse-basis/docs/features/FEA-005.md)), centered side by side: Edit and Close, as icon buttons
     (a pencil, a cross; each named and with a tooltip), or, while editing, Cancel, Save and Close, Close disabled
     while saving. The footer's start and end hold a relation inspector's arrows (decision 35). The header holds the label, the breadcrumb and the byline, no button.
 14. **Responsive layout**: on a screen 900px wide or more the inspector, once revealed, takes 2 of 5 columns beside the
     browser (3 of 5); narrower, it covers the browser. Fonts scale from 14px to 18px with the width (`clamp`). Values
     are abbreviated to one line (40 characters in a chip, cut at a word, with an ellipsis and the full value as a
     tooltip; floats to 4 significant digits), and summaries to two lines; the inspector shows them in full.
-15. **Auto scrolling**: each region scrolls on its own (the browser, each [CAP-009](../../mbse-basis/docs/capabilities/CAP-009.md) row, the inspector's body between its
+15. **Auto scrolling**: each region scrolls on its own (the browser, each [CAP-009: schema browser](../../mbse-basis/docs/capabilities/CAP-009.md) row, the inspector's body between its
     pinned label and actions); the chip of the object inspected scrolls into view; the inspector's body returns to the
     top on each navigation.
 16. **Views are kept once read** (`Service`), as they are reads; a refused one is asked again next time.
@@ -90,7 +90,7 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
 19. **What is editable**: the inspected object's own properties whose schema is `Schemas.OfStr`, set or not, in its
     schema's order (`textProperties`). An ownership key is a property of the directory's entry, never the object's,
     so none is editable here, as [CAP-014: properties as markdown](../../mbse-basis/docs/capabilities/CAP-014.md) requires; entries' properties (a plan's dates) and values nested in value
-    objects or containers are not edited in [CAP-014](../../mbse-basis/docs/capabilities/CAP-014.md). Where the UI does not know the object's schema (decision 10), it
+    objects or containers are not edited in [CAP-014: properties as markdown](../../mbse-basis/docs/capabilities/CAP-014.md). Where the UI does not know the object's schema (decision 10), it
     offers no Edit.
 20. **The editor replaces the detail** while editing: one text area per text property, starting from what the
     object holds; the adjacencies return in view mode.
@@ -106,7 +106,7 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
 
 ### Comments: CAP-022 and CAP-018 to CAP-021 (decided by the agent, for review)
 
-24. **Booleans as checkboxes** ([CAP-022](../../mbse-basis/docs/capabilities/CAP-022.md)): a `Schemas.OfBool` value is a read-only checkbox in view mode, labelled by
+24. **Booleans as checkboxes** ([CAP-022: booleans as checkboxes](../../mbse-basis/docs/capabilities/CAP-022.md)): a `Schemas.OfBool` value is a read-only checkbox in view mode, labelled by
     its property's name, and a checkbox in the editor; an absent boolean reads as unchecked, and is written only where
     the user changes it. The editor's fields (`Fields`) are shared by the object inspector and the adjacency
     inspector, and `editableProperties` gives them for an object schema or a relation's entries.
@@ -121,7 +121,7 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
     its schema's order, each a row of chips (decisions 33, 36); no list is nested under a chip. A deeper level is a click away: a topic's
     detail ends with its threads, a thread's (inspected) with its replies. (First built as nesting one level deep
     under each linked chip, which the user found confusing: "Showing comments *under* the chip is doubly so.")
-29. **Editing an existing entry's properties with its linked object's** (the rest of [CAP-018](../../mbse-basis/docs/capabilities/CAP-018.md)) is not built yet.
+29. **Editing an existing entry's properties with its linked object's** (the rest of [CAP-018: adjacency inspector](../../mbse-basis/docs/capabilities/CAP-018.md)) is not built yet.
 30. **The tab's session** ([CAP-015: transaction provenance](../../mbse-basis/docs/capabilities/CAP-015.md)): an id made once per browser tab and kept for its life (`sessionStorage`), the
     browser's locale (`navigator.language`) and a kind of device (`touch` or `desktop`, by its pointer), given to a
     live service's client, which names the session in a header and writes the locale and device into each write.
@@ -133,37 +133,37 @@ Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default 
     browser leaves out `Parametrics` and `Provenance` with the other framework modules.
 32. **Creation order** ([CAP-021: lists ordered by creation](../../mbse-basis/docs/capabilities/CAP-021.md)): an adjacency list is sorted by creation time where every item it shows has one, and
     kept in frame order otherwise; ties keep frame order.
-33. **An adjacency's preview is one chip per entry** ([CAP-019](../../mbse-basis/docs/capabilities/CAP-019.md)): two columns, the entry's properties on the left and, on
+33. **An adjacency's preview is one chip per entry** ([CAP-019: adjacencies at the end of a detail](../../mbse-basis/docs/capabilities/CAP-019.md)): two columns, the entry's properties on the left and, on
     the right, a pill `ID : name` of the linked object, a click on which inspects it. Its ID is its path's last key
     (`Views.lastKey`: its owning entry's key values, or a singleton's name). Its name is its own label; where it has
-    none ([CAP-005](../../mbse-basis/docs/capabilities/CAP-005.md)'s fallback), its summary, else its first text property (a comment's text), either shown as prose,
+    none ([CAP-005: label and summary view](../../mbse-basis/docs/capabilities/CAP-005.md)'s fallback), its summary, else its first text property (a comment's text), either shown as prose,
     the pill wrapping to three lines; else its schema's name. Where the entry has no properties, the pill takes the
-    whole chip. Where the object's provenance holds its creation ([CAP-020](../../mbse-basis/docs/capabilities/CAP-020.md)), the pill is headed, in small italics, by
+    whole chip. Where the object's provenance holds its creation ([CAP-020: provenance display](../../mbse-basis/docs/capabilities/CAP-020.md)), the pill is headed, in small italics, by
     `{identity} @ {datestamp}`; no byline sits outside the chip. The object's other properties wait for its detail.
     (First built as the object's chip beside its entry's, which read as two things for one: "why are there two chips
     but one thingy?"; then with the byline under the chip, "disembodied from the pill".)
-34. **The ownership path is a breadcrumb** ([CAP-019](../../mbse-basis/docs/capabilities/CAP-019.md)): an owned object's inspector header shows its path, read from its
+34. **The ownership path is a breadcrumb** ([CAP-019: adjacencies at the end of a detail](../../mbse-basis/docs/capabilities/CAP-019.md)): an owned object's inspector header shows its path, read from its
     reference, as `singleton › key › …`: its singleton's name, then each owning entry's key values, itself last; each
     ancestor is inspected on a click (a singleton with its directory schema; a deeper owner, were there one, with no
     schema known). The ownership adjacency (an adjacency marked `owner`) gets no list in the detail. A singleton has
     no breadcrumb. No subtitle repeats a schema's name: the inspected object's schema and each adjacency's relation
     are tooltips on the label and the section's heading, since the breadcrumb and the adjacency's name say as much.
-35. **The relation inspector** ([CAP-023](../../mbse-basis/docs/capabilities/CAP-023.md)): a target carries an optional anchor, `{ relation, link, links, properties }`:
+35. **The relation inspector** ([CAP-023: relation inspector](../../mbse-basis/docs/capabilities/CAP-023.md)): a target carries an optional anchor, `{ relation, link, links, properties }`:
     the relation holding the object, the link it fills, and bindings for other links (each an object's key and
     schema) and for property values. A pill in an adjacency list anchors its object: the adjacency's relation, the
     link the object fills in the entry, and the adjacency's own link bound to the list's owner, no property values.
-    On the Schemas tab ([CAP-009](../../mbse-basis/docs/capabilities/CAP-009.md)), an owned object's chip anchors at its ownership relation: the link it fills, and
+    On the Schemas tab ([CAP-009: schema browser](../../mbse-basis/docs/capabilities/CAP-009.md)), an owned object's chip anchors at its ownership relation: the link it fills, and
     the other bound to its owner (the last step before it on its ownership path), so the arrows step along its row.
-    On the Objects tab ([CAP-010](../../mbse-basis/docs/capabilities/CAP-010.md)), a chip anchors as a pill in its directory's list does (the directory's relation,
+    On the Objects tab ([CAP-010: object browser](../../mbse-basis/docs/capabilities/CAP-010.md)), a chip anchors as a pill in its directory's list does (the directory's relation,
     its own link bound to the singleton). A singleton's chip, the Relations tab's chips and a crumb open a single
-    object inspector. The siblings are read through [CAP-008](../../mbse-basis/docs/capabilities/CAP-008.md) from
+    object inspector. The siblings are read through [CAP-008: adjacency as a list of chips](../../mbse-basis/docs/capabilities/CAP-008.md) from
     the first bound link whose object's schema names an adjacency to the relation through it (the views the adjacency
     list already read, kept by `Service`), its entries matched against the other link and property bindings, each
-    object once, in [CAP-021](../../mbse-basis/docs/capabilities/CAP-021.md)'s order; none where no bound link has such an adjacency (a service view of a relation's
+    object once, in [CAP-021: lists ordered by creation](../../mbse-basis/docs/capabilities/CAP-021.md)'s order; none where no bound link has such an adjacency (a service view of a relation's
     entries under arbitrary bindings would lift that; not built). The footer shows "Previous in {relation}" and
     "Next in {relation}" as arrow icon buttons, at its start and end, only where that sibling exists and only out of
     editing; stepping keeps the anchor and no history.
-36. **Lists of chips scroll sideways** rather than wrap ([FEA-004](../../mbse-basis/docs/features/FEA-004.md)): every list of chips, a browser's (the Schemas and
+36. **Lists of chips scroll sideways** rather than wrap ([FEA-004: index site browser views](../../mbse-basis/docs/features/FEA-004.md)): every list of chips, a browser's (the Schemas and
     Objects tabs' sections, the Relations tab's entry rows) and the inspector's adjacency lists, is one row
     (`chipRow`), scrolled sideways where it overflows, snapping to its chips. A chip is at most 18rem wide, an
     adjacency's 24rem (it holds an entry's properties beside a pill), an entry row's 16rem; on a narrow screen each is

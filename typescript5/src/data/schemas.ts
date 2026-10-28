@@ -1,10 +1,10 @@
-/** What the UI reads from the schemas the client's store holds (CAP-002): which schemas the browsers show, and each
- * object schema's named adjacencies, whose entries the inspector lists (FEA-005, CAP-008). Schemas are read as data,
+/** What the UI reads from the schemas the client's store holds ([CAP-002: named schema list](../../../../mbse-basis/docs/capabilities/CAP-002.md)): which schemas the browsers show, and each
+ * object schema's named adjacencies, whose entries the inspector lists ([FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md), [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md)). Schemas are read as data,
  * through their public members (`name`, `description`, `ref`, `adjacencies`, `anonymous`). */
 
 import { schemaNames } from "@mbse/rest/Services/Rest/Client";
 
-/** The framework's modules, whose schemas the schema browser leaves out (CAP-009). */
+/** The framework's modules, whose schemas the schema browser leaves out ([CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md)). */
 export const FRAMEWORK_MODULES = ["Schemas", "Paths", "Mutations", "References", "Parametrics", "Provenance"] as const;
 
 export const isFramework = (name: string): boolean =>
@@ -23,13 +23,13 @@ export function schema(store: any, name: string): any {
 const isReferenceObject = (s: any): boolean => s?.ref === true && s.adjacencies instanceof Map;
 
 /** The app's reference object schemas, by registered name, in the store's order: every named schema outside the
- * framework that is marked `ref`. The object browser (CAP-010) shows their extents, and the relation browser (CAP-011)
+ * framework that is marked `ref`. The object browser ([CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)) shows their extents, and the relation browser ([CAP-011: relation browser](../../../../mbse-basis/docs/capabilities/CAP-011.md))
  * reads the entries their objects' adjacencies hold. */
 export function appObjectSchemas(store: any): string[] {
   return schemaNames(store).filter((name) => !isFramework(name) && isReferenceObject(schema(store, name)));
 }
 
-/** CAP-010: the app's reference object schemas that name a singleton (the directories), in the store's order. */
+/** [CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md): the app's reference object schemas that name a singleton (the directories), in the store's order. */
 export function singletonSchemas(store: any): string[] {
   return appObjectSchemas(store).filter((name) => typeof schema(store, name)?.singleton === "string");
 }
@@ -46,7 +46,7 @@ export function description(store: any, name: string): string {
   return typeof d === "string" ? d : "";
 }
 
-/** CAP-009: the schemas the schema browser shows, those with a registered name and a description, and of those only
+/** [CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md): the schemas the schema browser shows, those with a registered name and a description, and of those only
  * the app's reference object schemas. */
 export function browsableSchemas(store: any): string[] {
   return appObjectSchemas(store).filter((name) => description(store, name) !== "");
@@ -86,9 +86,9 @@ export interface Adjacency {
   readonly relation: string;
   /** The link the object fills. */
   readonly me: string;
-  /** The schemas whose objects its entries link, on the relation's other links: CAP-008's `y`, one request each. */
+  /** The schemas whose objects its entries link, on the relation's other links: [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md)'s `y`, one request each. */
   readonly linked: readonly string[];
-  /** The relation's other link, where it has exactly one: where a proposal (CAP-018) links its new object. */
+  /** The relation's other link, where it has exactly one: where a proposal ([CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md)) links its new object. */
   readonly link: string | undefined;
   /** Whether it is the object's ownership adjacency (to its directory). */
   readonly owner: boolean;
@@ -107,7 +107,7 @@ function toOne(relation: any, me: string): boolean {
   });
 }
 
-/** An object schema's named adjacencies, in its order (CAP-007 lists their entries, CAP-008 each one's chips). */
+/** An object schema's named adjacencies, in its order ([CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md) lists their entries, [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) each one's chips). */
 export function adjacencies(store: any, name: string): Adjacency[] {
   const s = schema(store, name);
   if (!isReferenceObject(s)) return [];
@@ -122,7 +122,7 @@ export function adjacencies(store: any, name: string): Adjacency[] {
   });
 }
 
-/** CAP-014: the properties of an object schema whose schema is `Schemas.OfStr`, read as markdown and editable, in the
+/** [CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md): the properties of an object schema whose schema is `Schemas.OfStr`, read as markdown and editable, in the
  * schema's order. An ownership key is an entry's property, never the object's, so none is among them. */
 export function textProperties(store: any, name: string): string[] {
   const properties = schema(store, name)?.properties;
@@ -130,7 +130,7 @@ export function textProperties(store: any, name: string): string[] {
   return [...properties].filter(([, p]: [string, any]) => p?.schema?.name === "Schemas.OfStr").map(([n]) => n);
 }
 
-/** A property the UI edits, and how: text as markdown (CAP-014), a boolean as a checkbox (CAP-022). */
+/** A property the UI edits, and how: text as markdown ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md)), a boolean as a checkbox ([CAP-022: booleans as checkboxes](../../../../mbse-basis/docs/capabilities/CAP-022.md)). */
 export interface Field {
   readonly name: string;
   readonly kind: "text" | "bool";

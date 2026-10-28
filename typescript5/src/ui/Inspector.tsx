@@ -1,6 +1,6 @@
-/** The object inspector (FEA-005): a shared panel that shows the detail view (CAP-007) of the object last inspected. Its
+/** The object inspector ([FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md)): a shared panel that shows the detail view ([CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md)) of the object last inspected. Its
  * label stays at the top and its actions at the bottom, while the properties and adjacencies scroll between them; each
- * named adjacency lists its linked objects' chips (CAP-008). */
+ * named adjacency lists its linked objects' chips ([CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md)). */
 
 import { useEffect, useRef, useState } from "react";
 import { adjacencies, type Adjacency, editableProperties, type Field } from "../data/schemas.js";
@@ -31,7 +31,7 @@ interface Refresh {
   readonly changed: () => void;
 }
 
-/** CAP-018: a new object proposed through an adjacency: a field for each editable property of its schema (picked where
+/** [CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md): a new object proposed through an adjacency: a field for each editable property of its schema (picked where
  * several fill the link) and of the relation's entries; Save commits the object and its entry in one transaction. */
 function Proposer({ reference, adjacency, refresh, onDone }: {
   readonly reference: unknown; readonly adjacency: Adjacency; readonly refresh: Refresh; readonly onDone: () => void;
@@ -83,9 +83,9 @@ function Proposer({ reference, adjacency, refresh, onDone }: {
   );
 }
 
-/** CAP-008 for one named adjacency, in the inspected object's detail (CAP-019): one request for each schema its
+/** [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) for one named adjacency, in the inspected object's detail ([CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md)): one request for each schema its
  * entries may link, the results together, each linked object a chip. Until they arrive, or where every one is refused,
- * the detail view's own entries are shown, labelled from it. "+" proposes a new linked object (CAP-018). */
+ * the detail view's own entries are shown, labelled from it. "+" proposes a new linked object ([CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md)). */
 function AdjacencyList({ owner, reference, adjacency, entries, refresh }: {
   readonly owner: Bound; readonly reference: unknown; readonly adjacency: Adjacency;
   readonly entries: readonly EntryView[]; readonly refresh: Refresh;
@@ -132,7 +132,7 @@ function EntriesByRelation({ detail }: { readonly detail: DetailView }) {
   ));
 }
 
-/** A value a click or a tap opens the editor on (CAP-014), where the object has text to edit. */
+/** A value a click or a tap opens the editor on ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md)), where the object has text to edit. */
 function Editable({ onEdit, children }: { readonly onEdit?: () => void; readonly children: React.ReactNode }) {
   if (onEdit === undefined) return <>{children}</>;
   return (
@@ -143,8 +143,8 @@ function Editable({ onEdit, children }: { readonly onEdit?: () => void; readonly
   );
 }
 
-/** The inspected object's ownership path, as a breadcrumb (FEA-003's identity): its singleton, then each owning entry's
- * key, itself last; each ancestor inspected on a click. It stands in for the ownership adjacency's list (CAP-019). */
+/** The inspected object's ownership path, as a breadcrumb ([FEA-003: no-code logical views](../../../../mbse-basis/docs/features/FEA-003.md)'s identity): its singleton, then each owning entry's
+ * key, itself last; each ancestor inspected on a click. It stands in for the ownership adjacency's list ([CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md)). */
 function Breadcrumb({ target }: { readonly target: Target }) {
   const service = useService();
   const { inspect } = useNavigation();
@@ -205,7 +205,7 @@ function Detail({ target, detail, onEdit, refresh }: {
   );
 }
 
-/** The object's editor (CAP-014, CAP-022): a field per editable property of its schema, from what it holds. */
+/** The object's editor ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md), [CAP-022: booleans as checkboxes](../../../../mbse-basis/docs/capabilities/CAP-022.md)): a field per editable property of its schema, from what it holds. */
 function Editor({ fields, draft, onChange, disabled, error }: {
   readonly fields: readonly Field[]; readonly draft: Draft;
   readonly onChange: (name: string, value: string | boolean) => void; readonly disabled: boolean; readonly error?: Error;
@@ -221,7 +221,7 @@ function Editor({ fields, draft, onChange, disabled, error }: {
 type Mode = "view" | "edit" | "save";
 
 /** The panel: hidden until an object is inspected; each inspection clears it, shows loading, and fetches the detail.
- * Its text properties are edited in place (CAP-014): view mode, then edit mode on the Edit button or a click on a
+ * Its text properties are edited in place ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md)): view mode, then edit mode on the Edit button or a click on a
  * value, then save mode while the service commits, and view mode again with what the service gives back. */
 export function Inspector() {
   const { place, close, inspect } = useNavigation();
@@ -245,7 +245,7 @@ export function Inspector() {
     body.current?.scrollTo?.({ top: 0 });
     setEdited(undefined); setMode("view"); setDraft({}); setFailed(undefined);
   }, [target?.key]);
-  // CAP-023: a relation inspector's siblings, read again after a save as every view is
+  // [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): a relation inspector's siblings, read again after a save as every view is
   const anchored = target?.anchor === undefined ? "" : globalThis.JSON.stringify(target.anchor);
   const context = useLoad(async () => target?.anchor === undefined ? [] : siblings(service, target.anchor),
     [service, anchored, version]);

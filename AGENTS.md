@@ -8,13 +8,13 @@ The schema, object and relation browsers and the object inspector (mbse-basis [F
 - **Siblings are checkouts beside this repository**, pinned by commit in `siblings.json`. Other agents may be working
   in them: never edit a sibling from here.
 - **What this repository builds is specified in mbse-basis' features and capabilities**
-  ([`../mbse-basis/docs/features/`](../mbse-basis/docs/features), [`../mbse-basis/docs/capabilities/`](../mbse-basis/docs/capabilities)), by ID; cite those IDs, each introduced
+  ([`mbse-basis/docs/features/`](../mbse-basis/docs/features), [`mbse-basis/docs/capabilities/`](../mbse-basis/docs/capabilities)), by ID; cite those IDs, each introduced
   by bridge language (mbse-basis [`docs/README.md`](../mbse-basis/docs/README.md), Rules for writing items, "Bridge, don't duplicate").
 - **Type-check and test** from `typescript5/`: `npm install && npm run typecheck && npm test` (Vitest, one-shot,
   against the golden corpus). Decisions taken where the capabilities are silent are in [`docs/DESIGN.md`](docs/DESIGN.md).
 - **It reads logical views through mbse-rest's client** (`@mbse/rest/Services/Rest/Client`: `Client`, `Views`), whose
   calls, templates and view kinds are mbse-rest's [`docs/CONTRACT.md`](../mbse-rest/docs/CONTRACT.md). Develop against mbse-rest's golden corpus
-  ([`../mbse-rest/conformance/`](../mbse-rest/conformance)) before a server runs, serving it through a fetch of your own as mbse-rest's
+  ([`mbse-rest/conformance/`](../mbse-rest/conformance)) before a server runs, serving it through a fetch of your own as mbse-rest's
   `typescript5/tests/client.test.ts` does. mbse-rest is a sibling checkout, pinned in `siblings.json` (edited by hand
   until `polyrepo.py pin` supports a TypeScript-only repository).
 

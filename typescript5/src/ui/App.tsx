@@ -1,4 +1,4 @@
-/** The index site (FEA-001, CAP-001): the browsers (FEA-004) and the inspector (FEA-005), driven by the schema alone. */
+/** The index site ([FEA-001: schema-driven UI](../../../../mbse-basis/docs/features/FEA-001.md), [CAP-001: no-code index view](../../../../mbse-basis/docs/capabilities/CAP-001.md)): the browsers ([FEA-004: index site browser views](../../../../mbse-basis/docs/features/FEA-004.md)) and the inspector ([FEA-005: inspector views](../../../../mbse-basis/docs/features/FEA-005.md)), driven by the schema alone. */
 
 import { ObjectBrowser, RelationBrowser, SchemaBrowser } from "./Browsers.js";
 import { Inspector } from "./Inspector.js";

@@ -1,6 +1,6 @@
-/** The index site's browser views (FEA-004): schemas (CAP-009), objects (CAP-010) and relation entries (CAP-011), each a
- * large scrollable view of sections of chips (CAP-006): a schema's extent, or the objects a directory holds (CAP-008),
- * each loaded whole and shown in frame order; counted objects never arrive (the service leaves them out, FEA-003). */
+/** The index site's browser views ([FEA-004: index site browser views](../../../../mbse-basis/docs/features/FEA-004.md)): schemas ([CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md)), objects ([CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)) and relation entries ([CAP-011: relation browser](../../../../mbse-basis/docs/capabilities/CAP-011.md)), each a
+ * large scrollable view of sections of chips ([CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md)): a schema's extent, or the objects a directory holds ([CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md)),
+ * each loaded whole and shown in frame order; counted objects never arrive (the service leaves them out, [FEA-003: no-code logical views](../../../../mbse-basis/docs/features/FEA-003.md)). */
 
 import { adjacencies, appObjectSchemas, appRelations, browsableSchemas, description, singleton, singletonSchemas }
   from "../data/schemas.js";
@@ -12,7 +12,7 @@ import type { RelationAnchor } from "./navigation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
-/** CAP-023: where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
+/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
  * the other bound to its owner, the last step before it on its ownership path. None for a singleton. */
 function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAnchor | undefined {
   const own = adjacencies(store, schema).find((a) => a.owner);
@@ -23,8 +23,8 @@ function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAn
       properties: {} };
 }
 
-/** The chips of one schema's extent, as a row (CAP-009); each owned object's opens a relation inspector anchored at
- * its ownership relation (CAP-023), so that its arrows step along its owner's objects. */
+/** The chips of one schema's extent, as a row ([CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md)); each owned object's opens a relation inspector anchored at
+ * its ownership relation ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along its owner's objects. */
 function Extent({ schema }: { readonly schema: string }) {
   const service = useService();
   const chips = useLoad(() => service.chips(schema), [service, schema]);
@@ -42,7 +42,7 @@ function Extent({ schema }: { readonly schema: string }) {
   );
 }
 
-/** Waits for the schemas (CAP-002), then renders. */
+/** Waits for the schemas ([CAP-002: named schema list](../../../../mbse-basis/docs/capabilities/CAP-002.md)), then renders. */
 function WithSchemas({ children }: { readonly children: (store: any) => React.ReactNode }) {
   const service = useService();
   const loaded = useLoad(() => service.schemas(), [service]);
@@ -51,7 +51,7 @@ function WithSchemas({ children }: { readonly children: (store: any) => React.Re
   return <>{children(service.store)}</>;
 }
 
-/** CAP-009: a section per schema with a registered name and a description, the app's reference object schemas only;
+/** [CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md): a section per schema with a registered name and a description, the app's reference object schemas only;
  * in each, the schema's label (its name) and description, then a scrollable row of its objects' chips. */
 export function SchemaBrowser() {
   return (
@@ -78,9 +78,9 @@ export function SchemaBrowser() {
   );
 }
 
-/** The objects a directory's singleton holds: CAP-008 over each of its named adjacencies but its ownership one, for
+/** The objects a directory's singleton holds: [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) over each of its named adjacencies but its ownership one, for
  * each schema the adjacency links, each object once, in frame order; each with its anchor in the directory's relation
- * (CAP-023), as an adjacency list's pill has. */
+ * ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), as an adjacency list's pill has. */
 async function held(service: ReturnType<typeof useService>, directory: string):
     Promise<{ readonly object: ObjectView; readonly anchor: RelationAnchor | undefined }[]> {
   const [root] = await service.chips(directory);
@@ -97,8 +97,8 @@ async function held(service: ReturnType<typeof useService>, directory: string):
   return [...objects.values()];
 }
 
-/** The chips of the objects a directory's singleton holds, as a row (CAP-010); each opens a relation inspector
- * anchored at the directory's relation (CAP-023), so that its arrows step along the section. */
+/** The chips of the objects a directory's singleton holds, as a row ([CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)); each opens a relation inspector
+ * anchored at the directory's relation ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along the section. */
 function Held({ directory }: { readonly directory: string }) {
   const service = useService();
   const chips = useLoad(() => held(service, directory), [service, directory]);
@@ -114,7 +114,7 @@ function Held({ directory }: { readonly directory: string }) {
   );
 }
 
-/** CAP-010: a section per schema that names a singleton, in the store's order, headed by the singleton's name; in
+/** [CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md): a section per schema that names a singleton, in the store's order, headed by the singleton's name; in
  * each, the chips of the objects the singleton holds. */
 export function ObjectBrowser() {
   return (
@@ -148,8 +148,8 @@ interface Relations {
   readonly failures: readonly { readonly schema: string; readonly error: Error }[];
 }
 
-/** CAP-011: the entries every object's named adjacencies hold (CAP-007 with `x` given each schema), and every object's
- * chip (CAP-006), so that each entry shows aside its linked objects' chips. A schema whose views fail is reported and
+/** [CAP-011: relation browser](../../../../mbse-basis/docs/capabilities/CAP-011.md): the entries every object's named adjacencies hold ([CAP-007: detail view](../../../../mbse-basis/docs/capabilities/CAP-007.md) with `x` given each schema), and every object's
+ * chip ([CAP-006: chip view](../../../../mbse-basis/docs/capabilities/CAP-006.md)), so that each entry shows aside its linked objects' chips. A schema whose views fail is reported and
  * the rest still shown. */
 async function relations(service: ReturnType<typeof useService>): Promise<Relations> {
   await service.schemas();

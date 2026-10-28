@@ -1,4 +1,4 @@
-/** CAP-020: who created an object and when, and who last wrote it and when (CAP-015), in the browser's locale and
+/** [CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md): who created an object and when, and who last wrote it and when ([CAP-015: transaction provenance](../../../../mbse-basis/docs/capabilities/CAP-015.md)), in the browser's locale and
  * time zone. */
 
 import type { ObjectView } from "../data/views.js";
@@ -28,7 +28,7 @@ export function Byline({ object, full = false }: { readonly object: ObjectView; 
   );
 }
 
-/** CAP-021: objects in the order they were created, where every one has a creation time; as given otherwise. */
+/** [CAP-021: lists ordered by creation](../../../../mbse-basis/docs/capabilities/CAP-021.md): objects in the order they were created, where every one has a creation time; as given otherwise. */
 export function byCreation<T extends { readonly object: ObjectView }>(items: readonly T[]): T[] {
   if (items.some((item) => item.object.provenance.created === undefined)) return [...items];
   return [...items].sort((a, b) => a.object.provenance.created!.when.localeCompare(b.object.provenance.created!.when));

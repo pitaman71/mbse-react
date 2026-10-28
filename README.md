@@ -33,7 +33,7 @@ npm run typecheck && npm test   # type-checking, then the behavior tests against
 npm run dev                     # http://localhost:5173
 ```
 
-The app serves mbse-rest's golden corpus ([`../mbse-rest/conformance/`](../mbse-rest/conformance)) through a fetch of its own, so no server runs.
+The app serves mbse-rest's golden corpus ([`mbse-rest/conformance/`](../mbse-rest/conformance)) through a fetch of its own, so no server runs.
 The corpus holds a case for every view the UI asks of the WorkTracker seed (mbse-rest's generated `ui-*` cases): every
 schema's chips and entries, every object's detail, and every adjacency view. A view it holds no case for (another
 app's, say) is shown as refused, in its place.
