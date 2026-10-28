@@ -1,6 +1,6 @@
 # mbse-react's design (M3)
 
-The index site of VISUALIZATION.md's FEA-001 (CAP-001): the schema, object and relation browsers (FEA-004: CAP-009,
+The index site of mbse-basis FEA-001 (CAP-001): the schema, object and relation browsers (FEA-004: CAP-009,
 CAP-010, CAP-011) and the object inspector (FEA-005), reading the logical views of CAP-005 to CAP-008 through
 mbse-rest's client (`@mbse/rest`) as mbse-rest's `docs/CONTRACT.md` fixes them. This page cites those IDs rather than
 restating them.
@@ -21,7 +21,7 @@ restating them.
 
 ## Decided by the agent, for review
 
-Where VISUALIZATION.md and CONTRACT.md are silent, the simplest default consistent with them:
+Where mbse-basis' capabilities and CONTRACT.md are silent, the simplest default consistent with them:
 
 1. **CSS-in-TS: Emotion (`@emotion/css`).** Its `css` takes typed style objects and returns a class name, so it needs
    no Babel plugin, no JSX pragma and no build step of its own: the same code runs under Vite, Vitest's jsdom and a

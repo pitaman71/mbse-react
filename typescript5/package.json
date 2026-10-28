@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A React UI for any mbse-schemas app (VISUALIZATION.md, FEA-004 and FEA-005)",
+  "description": "A React UI for any mbse-schemas app (mbse-basis FEA-004 and FEA-005)",
   "exports": {
     ".": "./src/index.ts"
   },

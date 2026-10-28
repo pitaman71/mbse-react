@@ -1,4 +1,4 @@
-/** A React UI for any mbse-schemas app (VISUALIZATION.md, FEA-004 and FEA-005), reading logical views through
+/** A React UI for any mbse-schemas app (mbse-basis FEA-004 and FEA-005), reading logical views through
  * mbse-rest's client, whose calls and view kinds are mbse-rest's docs/CONTRACT.md. */
 
 import { Client, newStore, schemaNames, ServiceError, Views } from "@mbse/rest/Services/Rest/Client";
