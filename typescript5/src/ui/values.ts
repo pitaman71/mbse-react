@@ -1,4 +1,4 @@
-/** Value abbreviation (VISUALIZATION.md, Priorities): a property's value as one short line, its full form kept for a
+/** Value abbreviation ([mbse-basis/proposals/PRIORITIES.md, single-user demo](../../../../mbse-basis/proposals/PRIORITIES.md#single-user-demo-with-schema-driven-index-site-for-any-mbse-app)): a property's value as one short line, its full form kept for a
  * tooltip and for the inspector. */
 
 const numbers = new Intl.NumberFormat(undefined, { maximumSignificantDigits: 4 });
