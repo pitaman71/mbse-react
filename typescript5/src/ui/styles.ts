@@ -1,5 +1,5 @@
 /** The app's styles, in TypeScript (CSS-in-TS, Emotion's `css`): tokens as CSS custom properties, light and dark, and
- * the responsive layout ([mbse-basis/proposals/PRIORITIES.md, single-user demo](../../../../mbse-basis/proposals/PRIORITIES.md#single-user-demo-with-schema-driven-index-site-for-any-mbse-app): views fully responsive; auto scrolling on all views).
+ * the responsive layout ([QUA-011: fully responsive views](../../../../mbse-basis/docs/QUALITIES.md#QUA-011); [QUA-012: auto-scrolling views](../../../../mbse-basis/docs/QUALITIES.md#QUA-012)).
  *
  * Emotion's `css` takes typed style objects and returns a class name, so it needs no Babel plugin, no JSX pragma and no
  * build step of its own: the same code runs under Vite, Vitest's jsdom and a production build. Zero-runtime libraries
@@ -139,7 +139,7 @@ export const inspectorActions = css({
   borderTop: "1px solid var(--line)",
 });
 export const inspectorActionsCenter = css({ gridColumn: 2, gridRow: 1, display: "flex", gap: "0.5rem", justifyContent: "center" });
-/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's arrows, at the footer's start and end. */
+/** [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's arrows, at the footer's start and end. */
 export const footerStart = css({ gridColumn: 1, gridRow: 1, justifySelf: "start" });
 export const footerEnd = css({ gridColumn: 3, gridRow: 1, justifySelf: "end" });
 export const iconButton = css({

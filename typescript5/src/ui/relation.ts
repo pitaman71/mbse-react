@@ -1,4 +1,4 @@
-/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's sibling context, and the [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) views it and the adjacency lists read. */
+/** [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): the relation inspector's sibling context, and the [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) views it and the adjacency lists read. */
 
 import { adjacencies, type Adjacency } from "../data/schemas.js";
 import type { AdjacentView, EntryView, ObjectView, Service } from "../data/views.js";
@@ -19,7 +19,7 @@ export async function adjacentViews(service: Service, reference: unknown, adjace
   return { views, errors, all: errors.length === settled.length };
 }
 
-/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): the anchor of an object inspected from an adjacency list (or a
+/** [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): the anchor of an object inspected from an adjacency list (or a
  * directory's section on the Objects tab, [CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)): the adjacency's relation, the link the object
  * fills in the entry, and the adjacency's own link bound to the list's owner. None where the link is not known. */
 export function anchorOf(owner: Bound, adjacency: Adjacency, object: ObjectView, entry: EntryView): RelationAnchor | undefined {

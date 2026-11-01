@@ -12,7 +12,7 @@ import type { RelationAnchor } from "./navigation.js";
 import { useService } from "./service.js";
 import * as s from "./styles.js";
 
-/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
+/** [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
  * the other bound to its owner, the last step before it on its ownership path. None for a singleton. */
 function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAnchor | undefined {
   const own = adjacencies(store, schema).find((a) => a.owner);
@@ -24,7 +24,7 @@ function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAn
 }
 
 /** The chips of one schema's extent, as a row ([CAP-009: schema browser](../../../../mbse-basis/docs/capabilities/CAP-009.md)); each owned object's opens a relation inspector anchored at
- * its ownership relation ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along its owner's objects. */
+ * its ownership relation ([CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along its owner's objects. */
 function Extent({ schema }: { readonly schema: string }) {
   const service = useService();
   const chips = useLoad(() => service.chips(schema), [service, schema]);
@@ -80,7 +80,7 @@ export function SchemaBrowser() {
 
 /** The objects a directory's singleton holds: [CAP-008: adjacency as a list of chips](../../../../mbse-basis/docs/capabilities/CAP-008.md) over each of its named adjacencies but its ownership one, for
  * each schema the adjacency links, each object once, in frame order; each with its anchor in the directory's relation
- * ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), as an adjacency list's pill has. */
+ * ([CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)), as an adjacency list's pill has. */
 async function held(service: ReturnType<typeof useService>, directory: string):
     Promise<{ readonly object: ObjectView; readonly anchor: RelationAnchor | undefined }[]> {
   const [root] = await service.chips(directory);
@@ -98,7 +98,7 @@ async function held(service: ReturnType<typeof useService>, directory: string):
 }
 
 /** The chips of the objects a directory's singleton holds, as a row ([CAP-010: object browser](../../../../mbse-basis/docs/capabilities/CAP-010.md)); each opens a relation inspector
- * anchored at the directory's relation ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along the section. */
+ * anchored at the directory's relation ([CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along the section. */
 function Held({ directory }: { readonly directory: string }) {
   const service = useService();
   const chips = useLoad(() => held(service, directory), [service, directory]);

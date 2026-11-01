@@ -32,7 +32,7 @@ function useScrolled<T extends HTMLElement>(current: boolean) {
   return ref;
 }
 
-/** An object's chip, inspected on a click (with an anchor, in a relation inspector, [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)); scrolled into view when
+/** An object's chip, inspected on a click (with an anchor, in a relation inspector, [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)); scrolled into view when
  * it is the one inspected (auto scrolling). */
 export function ObjectChip({ object, showSchema = true, anchor }: {
   readonly object: ObjectView; readonly showSchema?: boolean; readonly anchor?: RelationAnchor | undefined;
@@ -84,7 +84,7 @@ function PillHeader({ object }: { readonly object: ObjectView }) {
 /** An adjacency's preview ([CAP-019: adjacencies at the end of a detail](../../../../mbse-basis/docs/capabilities/CAP-019.md)): one chip per entry and linked object, in two columns: the entry's properties on
  * the left, where it has any; on the right, a pill of the linked object, inspected on a click: a header of who created
  * it and when, where its provenance says ([CAP-020: provenance display](../../../../mbse-basis/docs/capabilities/CAP-020.md)), then `ID : name`, wrapping where its name is prose. With an
- * anchor, the click opens a relation inspector ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
+ * anchor, the click opens a relation inspector ([CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
 export function AdjacentChip({ object, entry, anchor }: {
   readonly object: ObjectView; readonly entry: EntryView; readonly anchor?: RelationAnchor | undefined;
 }) {
