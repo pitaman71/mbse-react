@@ -13,7 +13,7 @@ export interface Bound {
   readonly schema?: string | undefined;
 }
 
-/** [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): what anchors a relation inspector besides its object: a relation that holds the object, the link the
+/** [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): what anchors a relation inspector besides its object: a relation that holds the object, the link the
  * object fills in it, and bindings for the relation's other links and property values on it, which define the
  * sibling context. */
 export interface RelationAnchor {
@@ -24,7 +24,7 @@ export interface RelationAnchor {
 }
 
 /** An object to inspect: a single object inspector's ([CAP-017: object inspector](../../../../mbse-basis/docs/capabilities/CAP-017.md)), anchored by its schema and ID (its reference); or,
- * with an anchor, a relation inspector's ([CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
+ * with an anchor, a relation inspector's ([CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md)). */
 export interface Target extends Bound {
   readonly anchor?: RelationAnchor | undefined;
 }

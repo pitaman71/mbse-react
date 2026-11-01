@@ -245,7 +245,7 @@ export function Inspector() {
     body.current?.scrollTo?.({ top: 0 });
     setEdited(undefined); setMode("view"); setDraft({}); setFailed(undefined);
   }, [target?.key]);
-  // [CAP-023: relation inspector](../../../../mbse-basis/docs/capabilities/CAP-023.md): a relation inspector's siblings, read again after a save as every view is
+  // [CAP-023: relation inspector, read-only](../../../../mbse-basis/docs/capabilities/CAP-023.md): a relation inspector's siblings, read again after a save as every view is
   const anchored = target?.anchor === undefined ? "" : globalThis.JSON.stringify(target.anchor);
   const context = useLoad(async () => target?.anchor === undefined ? [] : siblings(service, target.anchor),
     [service, anchored, version]);
