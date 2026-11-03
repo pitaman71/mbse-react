@@ -1,5 +1,5 @@
-/** The fields an editor shows for properties ([CAP-014: properties as markdown](../../../../mbse-basis/docs/capabilities/CAP-014.md), [CAP-022: booleans as checkboxes](../../../../mbse-basis/docs/capabilities/CAP-022.md)): a text area for text, a checkbox for a boolean. Shared
- * by the object inspector ([CAP-017: object inspector](../../../../mbse-basis/docs/capabilities/CAP-017.md)) and the adjacency inspector ([CAP-018: adjacency inspector](../../../../mbse-basis/docs/capabilities/CAP-018.md)). */
+/** The fields an editor shows for properties ([CAP-014: properties as markdown](mbse:mbse-basis/docs/capabilities/CAP-014.md), [CAP-022: booleans as checkboxes](mbse:mbse-basis/docs/capabilities/CAP-022.md)): a text area for text, a checkbox for a boolean. Shared
+ * by the object inspector ([CAP-017: object inspector](mbse:mbse-basis/docs/capabilities/CAP-017.md)) and the adjacency inspector ([CAP-018: adjacency inspector](mbse:mbse-basis/docs/capabilities/CAP-018.md)). */
 
 import type { Field } from "../data/schemas.js";
 import * as s from "./styles.js";

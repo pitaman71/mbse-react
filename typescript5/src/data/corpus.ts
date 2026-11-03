@@ -1,5 +1,5 @@
 /** mbse-rest's golden corpus (`../mbse-rest/conformance/`) served through a fetch of our own, as mbse-rest's client
- * tests serve it: the UI develops against real requests and responses before a server runs ([FEA-003: no-code logical views](../../../../mbse-basis/docs/features/FEA-003.md#the-golden-corpus), the golden
+ * tests serve it: the UI develops against real requests and responses before a server runs ([FEA-003: no-code logical views](mbse:mbse-basis/docs/features/FEA-003.md#the-golden-corpus), the golden
  * corpus). A request the corpus holds no case for is answered 599, a status outside HTTP's, with an error body that says
  * so: the client raises its `ServiceError`, and the UI shows the refusal in place of that view. */
 
