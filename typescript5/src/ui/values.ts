@@ -1,4 +1,4 @@
-/** Value abbreviation ([QUA-011: fully responsive views](../../../../mbse-basis/docs/QUALITIES.md#QUA-011)): a property's value as one short line, its full form kept for a
+/** Value abbreviation ([QUA-011: fully responsive views](mbse:mbse-basis/docs/QUALITIES.md#QUA-011)): a property's value as one short line, its full form kept for a
  * tooltip and for the inspector. */
 
 const numbers = new Intl.NumberFormat(undefined, { maximumSignificantDigits: 4 });
