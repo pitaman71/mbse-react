@@ -20,7 +20,7 @@ capabilities it builds, in mbse-basis' [`docs/capabilities/`](https://github.com
 
 It depends on [mbse-schemas](https://github.com/pitaman71/mbse-schemas) and
 [mbse-rest](https://github.com/pitaman71/mbse-rest) as checkouts beside this repository, pinned in
-[siblings.json](siblings.json). Node 22 or later.
+`siblings.json`. Node 22 or later.
 
 ```sh
 cd typescript5
