@@ -44,7 +44,7 @@ app's, say) is shown as refused, in its place.
 Start the server (from mbse-rest's [`python3/`](https://github.com/pitaman71/mbse-rest/blob/main/python3)):
 
 ```sh
-uv run --with uvicorn uvicorn --factory mbse.Services.Rest.Service:work_tracker   # http://localhost:8000
+uv sync --all-extras && uv run python -m mbse.Services.Rest   # the WorkTracker demo at http://127.0.0.1:8000
 ```
 
 then the app, given its URL:

@@ -119,9 +119,10 @@ describe("detail and adjacency", () => {
     expect(detail.object.label).toBe("Demoable index site");
     expect(detail.object.summary).toBe("Browse and inspect the seeded project.");
     expect(detail.object.properties.size).toBe(0); // title and description are its label and summary
+    // each entry's linked objects in its links' order, as the service gives them (mbse-rest 0.4)
     expect(detail.entries.map((e) => e.label)).toEqual([
-      "work.InGoals: Demoable index site, work.Goals",
-      "work.HasGoal: Demoable index site, MVP",
+      "work.InGoals: work.Goals, Demoable index site",
+      "work.HasGoal: MVP, Demoable index site",
       "work.Plans: Demoable index site, No-code index view",
       "work.Plans: Demoable index site, Logical view as chip",
     ]);
