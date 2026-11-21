@@ -3,7 +3,8 @@
  * Labels, summaries and chips are the client's (`Views.label`, `Views.summary`, `Views.chip`, `Views.entryLabel`), so
  * [CAP-005: label and summary view](mbse:mbse-basis/docs/capabilities/CAP-005.md)'s convention and fallbacks are applied in one place, mbse-rest's. */
 
-import { Client, newStore, Views } from "@mbse/rest/Services/Rest/Client";
+import { Client, Gone, newStore, Views } from "@mbse/rest/Services/Rest/Client";
+import type { Remote } from "@mbse/rest/Services/Rest/Store";
 import { JSON as J } from "@mbse/schemas/Framework";
 import { isFramework, schemaOfLink, singleton, singletonSchemas } from "./schemas.js";
 
@@ -113,17 +114,124 @@ export interface AdjacentView {
   readonly entry: EntryView;
 }
 
-/** The service as the UI reaches it: mbse-rest's client and a store holding the app's schemas ([CAP-002: named schema list](mbse:mbse-basis/docs/capabilities/CAP-002.md)). Each view is
- * requested once and kept, as the views are reads; a refused one is asked again next time. */
+/** The service's change feed, as the UI follows it: mbse-rest's `Remote`, the service as a layer below, made when the
+ * follow starts, and again after the feed is gone (`Gone`, 410), as after the service restarted. */
+export type Feed = () => Remote;
+
+/** The service as the UI reaches it: mbse-rest's client and a store holding the app's schemas ([CAP-002: named schema list](mbse:mbse-basis/docs/capabilities/CAP-002.md)), and, where
+ * it is given a feed, the follow of what the service's store commits.
+ *
+ * Every read is within a transaction or through a follow ([CAP-315: every read within a transaction or through a follow](mbse:mbse-basis/docs/capabilities/CAP-315.md)). A view is a transaction the service executes
+ * within one of its store's, and gives back as frames that hold each object by its reference and the values it
+ * assigns: what the UI keeps outlives that transaction, and is stale from then on. So each view is kept only until the
+ * follow gives a transaction the service committed, any one, the UI's own edits among them: then every view kept is
+ * dropped, and the listeners told (`version`), so that what shows a view reads it again. A refused view is asked again
+ * next time.
+ *
+ * The UI holds no cache layer of the service's store (mbse-rest's `Store`): a view is filled by the service, which the
+ * view's transaction does not express, and every view starts from a schema's extent or from an object given by
+ * reference that a cache layer would not hold, which its completeness rule forwards to the service in any case. The
+ * store it holds is the schemas', which a schema object is read from with no transaction, as CAP-315 allows. */
 export class Service {
   readonly store: any = newStore();
   private readonly frames = new Map<string, Promise<Frame[]>>();
   private loaded: Promise<string[]> | undefined;
+  private remote: Remote | undefined;
+  private unfollow: (() => void) | undefined;
+  private given = 0;
+  private lapsed = false;
+  private changes = 0;
+  private readonly listeners = new Set<() => void>();
+  /** Why the change feed was last not read, until it is read again. */
+  followError: unknown = undefined;
 
-  constructor(readonly client: Client) {}
+  constructor(readonly client: Client, private readonly feed?: Feed) {}
 
-  /** [CAP-002: named schema list](mbse:mbse-basis/docs/capabilities/CAP-002.md): reads the schemas into the store, once. Gives every named schema's name. */
+  /** How many times the follow has dropped the views kept: what shows a view reads it again when this changes. */
+  get version(): number {
+    return this.changes;
+  }
+
+  /** Calls `listener` whenever `version` changes; gives back a function that ends it. */
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  };
+
+  /** Follows the service's change feed, where a feed was given: once at once, then every `every` milliseconds, in the
+   * follow mode `POLLED`, so that the UI reads a poll behind. Gives back a function that stops it. */
+  start(every = 2000): () => void {
+    if (this.feed === undefined) return () => undefined;
+    this.poll();
+    const timer = setInterval(() => this.poll(), every);
+    return () => clearInterval(timer);
+  }
+
+  /** Reads the change feed to its head, where a feed was given: each transaction it gives drops every view kept, and
+   * the listeners are told once. Gives how many it gave. A feed that cannot be read is read again on the next poll; one
+   * gone is followed again at once, from its head, and every view dropped, as what was missed is not known. */
+  poll(): number {
+    if (this.feed === undefined) return 0;
+    const before = this.given;
+    try {
+      (this.remote ?? this.connect()).poll();
+      this.followError = undefined;
+    } catch (error) {
+      this.followError = error;
+      if (error instanceof Gone) {
+        this.disconnect();
+        this.given += 1;
+        try {
+          this.connect();
+        } catch (again) {
+          this.followError = again;
+        }
+      }
+    }
+    const given = this.given - before;
+    if (given > 0) this.changed();
+    return given;
+  }
+
+  /** The follow begun, the feed read from its head. Where an attempt before failed, a view read since may be older than
+   * that head, and is dropped. */
+  private connect(): Remote {
+    let remote: Remote;
+    try {
+      remote = this.feed!();
+    } catch (error) {
+      this.lapsed = true;
+      throw error;
+    }
+    this.unfollow = remote.follow(() => { this.given += 1; });
+    this.remote = remote;
+    if (this.lapsed && this.frames.size > 0) this.given += 1;
+    this.lapsed = false;
+    return remote;
+  }
+
+  private disconnect(): void {
+    this.unfollow?.();
+    this.unfollow = undefined;
+    this.remote = undefined;
+  }
+
+  private changed(): void {
+    this.frames.clear();
+    this.changes += 1;
+    for (const listener of [...this.listeners]) listener();
+  }
+
+  /** [CAP-002: named schema list](mbse:mbse-basis/docs/capabilities/CAP-002.md): reads the schemas into the store, once. Gives every named schema's name. Every view waits for it, so
+   * the follow begins here, before the first view is read, that none is older than the feed's head. */
   schemas(): Promise<string[]> {
+    if (this.loaded === undefined && this.feed !== undefined && this.remote === undefined) {
+      try {
+        this.connect();
+      } catch (error) {
+        this.followError = error; // begun on the next poll
+      }
+    }
     this.loaded ??= this.client.loadSchemas(this.store);
     return this.loaded;
   }

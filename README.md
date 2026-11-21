@@ -54,7 +54,14 @@ MBSE_REST_URL=http://localhost:8000 npm run dev
 ```
 
 The dev server proxies `/rest` to that URL, so the browser sees one origin. A production build (`npm run build`) calls
-`MBSE_REST_URL` directly, which then needs the server to allow the app's origin (CORS).
+`MBSE_REST_URL` directly, which then needs the server to allow the app's origin (CORS, mbse-rest's
+`MBSE_REST_ORIGINS`).
+
+Against a live server the app follows what the service commits, its own edits and anyone else's: it reads the
+service's change feed every two seconds, and each transaction the feed gives makes every view shown read again, what
+was shown staying until the new view arrives (mbse-basis [CAP-315: every read within a transaction or through a follow](https://github.com/pitaman71/mbse-basis/blob/main/docs/capabilities/CAP-315.md)).
+The feed is read through mbse-rest's `Remote`, whose requests are synchronous, a browser's `XMLHttpRequest`: each
+read of the feed holds the page for its round trip. The corpus is a seed no one writes, and is not followed.
 
 ## Using it
 

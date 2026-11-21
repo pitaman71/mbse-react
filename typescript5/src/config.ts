@@ -3,6 +3,7 @@
  * reached through the dev server's proxy at `/rest`, so that the browser sees one origin; a build calls it directly. */
 
 import { Client } from "@mbse/rest/Services/Rest/Client";
+import { Remote } from "@mbse/rest/Services/Rest/Store";
 import { corpusFetch } from "./data/corpus.js";
 import { Service } from "./data/views.js";
 
@@ -37,8 +38,10 @@ export function tabSession(): { id: string; locale: string; device: string } {
 }
 
 /** The service a configuration reaches. Against the corpus, no session is sent, so that every request is the one the
- * corpus holds. */
+ * corpus holds, and nothing is followed: the corpus is a seed that no one writes, and holds no change feed. A live
+ * service's change feed is followed through mbse-rest's `Remote`, whose requests are synchronous: a browser's
+ * `XMLHttpRequest`, made on the page's thread, as mbse-rest's client has it. */
 export function serviceFor(config: Config): Service {
-  return new Service(config.source === "corpus" ? new Client(config.base, corpusFetch)
-    : new Client(config.base, { session: tabSession() }));
+  if (config.source === "corpus") return new Service(new Client(config.base, corpusFetch));
+  return new Service(new Client(config.base, { session: tabSession() }), () => new Remote(config.base));
 }
