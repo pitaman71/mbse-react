@@ -8,6 +8,6 @@ import { Client, newStore, schemaNames, ServiceError, Views } from "@mbse/rest/S
 export { Client, newStore, schemaNames, ServiceError, Views };
 
 export { App } from "./ui/App.js";
-export { Service, type ObjectView, type EntryView, type DetailView, type AdjacentView } from "./data/views.js";
+export { Service, type Feed, type ObjectView, type EntryView, type DetailView, type AdjacentView } from "./data/views.js";
 export * as Schemas from "./data/schemas.js";
 export { corpusFetch } from "./data/corpus.js";

@@ -9,7 +9,7 @@ import { EntryChip, Failure, Loading, ObjectChip } from "./Chip.js";
 import { useLoad } from "./load.js";
 import { adjacentViews, anchorOf } from "./relation.js";
 import type { RelationAnchor } from "./navigation.js";
-import { useService } from "./service.js";
+import { useFollowed, useService } from "./service.js";
 import * as s from "./styles.js";
 
 /** [CAP-023: relation inspector, read-only](mbse:mbse-basis/docs/capabilities/CAP-023.md): where an object of `schema` is owned, the anchor of its ownership relation: the link the object fills, and
@@ -27,7 +27,7 @@ function ownedAnchor(store: any, schema: string, object: ObjectView): RelationAn
  * its ownership relation ([CAP-023: relation inspector, read-only](mbse:mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along its owner's objects. */
 function Extent({ schema }: { readonly schema: string }) {
   const service = useService();
-  const chips = useLoad(() => service.chips(schema), [service, schema]);
+  const chips = useLoad(() => service.chips(schema), [service, schema], useFollowed());
   if (chips.state === "loading") return <Loading />;
   if (chips.state === "error") return <Failure error={chips.error} />;
   if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
@@ -101,7 +101,7 @@ async function held(service: ReturnType<typeof useService>, directory: string):
  * anchored at the directory's relation ([CAP-023: relation inspector, read-only](mbse:mbse-basis/docs/capabilities/CAP-023.md)), so that its arrows step along the section. */
 function Held({ directory }: { readonly directory: string }) {
   const service = useService();
-  const chips = useLoad(() => held(service, directory), [service, directory]);
+  const chips = useLoad(() => held(service, directory), [service, directory], useFollowed());
   if (chips.state === "loading") return <Loading />;
   if (chips.state === "error") return <Failure error={chips.error} />;
   if (chips.value.length === 0) return <p className={s.muted}>No objects.</p>;
@@ -176,7 +176,7 @@ async function relations(service: ReturnType<typeof useService>): Promise<Relati
 
 export function RelationBrowser() {
   const service = useService();
-  const loaded = useLoad(() => relations(service), [service]);
+  const loaded = useLoad(() => relations(service), [service], useFollowed());
   if (loaded.state === "loading") return <Loading />;
   if (loaded.state === "error") return <Failure error={loaded.error} />;
   const { grouped, chips, failures } = loaded.value;

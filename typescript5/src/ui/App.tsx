@@ -1,5 +1,6 @@
 /** The index site ([FEA-001: schema-driven UI](mbse:mbse-basis/docs/features/FEA-001.md), [CAP-001: no-code index view](mbse:mbse-basis/docs/capabilities/CAP-001.md)): the browsers ([FEA-004: index site browser views](mbse:mbse-basis/docs/features/FEA-004.md)) and the inspector ([FEA-005: inspector views](mbse:mbse-basis/docs/features/FEA-005.md)), driven by the schema alone. */
 
+import { useEffect } from "react";
 import { ObjectBrowser, RelationBrowser, SchemaBrowser } from "./Browsers.js";
 import { Inspector } from "./Inspector.js";
 import { NavigationProvider, useNavigation, VIEWS, type View } from "./navigation.js";
@@ -35,7 +36,10 @@ function Layout({ source }: { readonly source: string }) {
   );
 }
 
+/** The app over `service`, which it follows while it is shown, where the service was given a change feed: every view
+ * shown is read again as the follow gives what the service committed. */
 export function App({ service, source }: { readonly service: Service; readonly source: string }) {
+  useEffect(() => service.start(), [service]);
   return (
     <ServiceContext.Provider value={service}>
       <NavigationProvider>

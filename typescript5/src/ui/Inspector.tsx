@@ -12,7 +12,7 @@ import { changes, type Draft, draftOf, Fields } from "./Fields.js";
 import { Markdown, Value } from "./Markdown.js";
 import { type Bound, type RelationAnchor, type Target, useNavigation } from "./navigation.js";
 import { adjacentViews, anchorOf, siblings } from "./relation.js";
-import { useService } from "./service.js";
+import { useFollowed, useService } from "./service.js";
 import * as s from "./styles.js";
 
 /** The entries of `detail` that belong to `adjacency`: of its relation, with the object in its link. */
@@ -93,7 +93,7 @@ function AdjacencyList({ owner, reference, adjacency, entries, refresh }: {
   const service = useService();
   const [proposing, setProposing] = useState(false);
   const loaded = useLoad(() => adjacentViews(service, reference, adjacency),
-    [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version]);
+    [service, reference, adjacency.name, adjacency.linked.join(" "), refresh.version], useFollowed());
   const fallback = entries.flatMap((entry) => others(entry, adjacency.me).map((object) => ({ object, entry })));
   const shown = byCreation(loaded.state === "done" && !loaded.value.all ? loaded.value.views : fallback);
   return (
@@ -231,12 +231,16 @@ export function Inspector() {
   const current = useRef(target?.key);
   current.current = target?.key;
   const [version, setVersion] = useState(0); // bumped by a save, so that every view is read again
+  const followed = useFollowed();
+  const following = useRef(followed);
+  following.current = followed;
   const loaded = useLoad(async () => {
     if (target === undefined) return undefined;
     await service.schemas();
     return service.detail(service.reference(target.key), target.schema);
-  }, [service, target?.key, target?.schema, version]);
-  const [edited, setEdited] = useState<DetailView | undefined>(undefined);
+  }, [service, target?.key, target?.schema, version], followed);
+  // what a save gave back, shown until a detail read after the follow next gives what the service committed
+  const [edited, setEdited] = useState<{ readonly detail: DetailView; readonly at: number } | undefined>(undefined);
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState<Draft>({});
   const [failed, setFailed] = useState<Error | undefined>(undefined);
@@ -248,14 +252,15 @@ export function Inspector() {
   // [CAP-023: relation inspector, read-only](mbse:mbse-basis/docs/capabilities/CAP-023.md): a relation inspector's siblings, read again after a save as every view is
   const anchored = target?.anchor === undefined ? "" : globalThis.JSON.stringify(target.anchor);
   const context = useLoad(async () => target?.anchor === undefined ? [] : siblings(service, target.anchor),
-    [service, anchored, version]);
+    [service, anchored, version], followed);
   if (target === undefined) return null;
   const all = context.state === "done" ? context.value : [];
   const at = all.findIndex((t) => t.key === target.key);
   const previous = at > 0 ? all[at - 1] : undefined;
   const next = at >= 0 && at < all.length - 1 ? all[at + 1] : undefined;
   const along = target.anchor === undefined ? "" : ` in ${target.anchor.relation}`;
-  const detail = edited ?? (loaded.state === "done" ? loaded.value : undefined);
+  const read = loaded.state === "done" ? loaded : undefined;
+  const detail = edited !== undefined && (read === undefined || read.at <= edited.at) ? edited.detail : read?.value;
   const fields = detail !== undefined && target.schema !== undefined ? editableProperties(service.store, target.schema) : [];
   const edit = fields.length === 0 ? undefined : () => {
     setDraft(draftOf(fields, detail!.values));
@@ -271,7 +276,7 @@ export function Inspector() {
     try {
       const saved = await service.edit(detail.object.reference, changed, target.schema);
       if (current.current !== key) return;
-      setEdited(saved);
+      setEdited({ detail: saved, at: following.current });
       setMode("view");
     } catch (error) {
       if (current.current !== key) return;

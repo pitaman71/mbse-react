@@ -26,7 +26,10 @@ directory that holds `mbse/`; npm: the package's directory), where the package s
 ## This repository
 
 - It reads logical views only through mbse-rest's client module, `@mbse/rest/Services/Rest/Client` (`Client`,
-  `Views`).
+  `Views`), and follows what the service commits only through mbse-rest's `Remote`
+  (`@mbse/rest/Services/Rest/Store`), its change feed: every read within a transaction or through a follow (mbse-basis
+  [CAP-315: every read within a transaction or through a follow](https://github.com/pitaman71/mbse-basis/blob/main/docs/capabilities/CAP-315.md)). A view kept is stale once the follow gives a
+  transaction; `Service` drops them all then, and a component that reads a view passes `useFollowed()` to `useLoad`.
 
 ## Commands
 
