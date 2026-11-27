@@ -24,7 +24,7 @@ export interface ObjectView {
   readonly label: string;
   /** [CAP-005: label and summary view](mbse:mbse-basis/docs/capabilities/CAP-005.md); empty where it holds none. */
   readonly summary: string;
-  /** The other properties the frame assigns it, besides its label's and its summary's: a chip's ([CAP-006: chip view](mbse:mbse-basis/docs/capabilities/CAP-006.md)), or every
+  /** The other properties the frame carries of it, besides its label's and its summary's: a chip's ([CAP-006: chip view](mbse:mbse-basis/docs/capabilities/CAP-006.md)), or every
    * other one a detail holds ([CAP-007: detail view](mbse:mbse-basis/docs/capabilities/CAP-007.md)). */
   readonly properties: ReadonlyMap<string, unknown>;
   /** [CAP-020: provenance display](mbse:mbse-basis/docs/capabilities/CAP-020.md): who created it and when, and who last wrote it and when, where the frame carries it ([CAP-015: transaction provenance](mbse:mbse-basis/docs/capabilities/CAP-015.md)). */
@@ -47,15 +47,15 @@ export interface EntryView {
 
 /** The app's entries a frame carries: not the framework's, such as provenance's ([CAP-015: transaction provenance](mbse:mbse-basis/docs/capabilities/CAP-015.md)), which `Views.provenance`
  * reads. */
-const appEntries = (store: any, frame: Frame): unknown[] =>
+const appEntries = (store: any, frame: Frame): Views.Entry[] =>
   frame.entries.filter((entry) => !isFramework(Views.relationName(store, entry)));
 
-/** A frame that binds `symbol` to `reference`, so that the client's readers apply to any object the frame witnesses. */
+/** A frame that binds `symbol` to `reference`, so that the client's readers apply to any object the frame carries. */
 const rebound = (frame: Frame, reference: unknown, symbol = "x"): Frame =>
   ({ ...frame, binds: new Map([...frame.binds, [symbol, reference]]) });
 
-/** The object `symbol` binds, as `frame` gives it: its label, its summary, and the other properties the frame assigns
- * it (`Views.chip`). */
+/** The object `symbol` binds, as `frame` gives it: its label, its summary, and the other properties the frame carries
+ * of it (`Views.chip`). */
 export function objectOf(store: any, frame: Frame, symbol: string, schema?: string): ObjectView {
   const reference = frame.binds.get(symbol);
   return {
@@ -70,30 +70,22 @@ export function objectOf(store: any, frame: Frame, symbol: string, schema?: stri
   };
 }
 
-/** Any object `frame` witnesses, by its reference: an entry's linked object, labelled from what the frame assigns it. */
+/** Any object `frame` carries, by its reference: an entry's linked object, labelled from what the frame carries of it. */
 export function objectAt(store: any, frame: Frame, reference: unknown, schema?: string): ObjectView {
   return objectOf(store, rebound(frame, reference), "x", schema);
 }
 
-/** The links of an entry (`References.OfEntry`), each name and `References.OfObject`, read through its visitors. */
-function linksOf(entry: any): [string, unknown][] {
-  const out: [string, unknown][] = [];
-  entry.links.as_value((v: any) => v.as_container((c: any) => c.as_entries((entries: Iterator<[unknown, any]>) => {
-    for (const [name, any] of { [Symbol.iterator]: () => entries }) any.as_object((o: any) => out.push([String(name), o]));
-  })));
-  return out;
-}
-
-/** An entry `frame` carries, its linked objects labelled from what the frame assigns them. */
-export function entryOf(store: any, frame: Frame, entry: unknown): EntryView {
+/** An entry `frame` carries (`Views.Entry`, one its journal inserts), its linked objects labelled from the properties
+ * the frame carries of them. */
+export function entryOf(store: any, frame: Frame, entry: Views.Entry): EntryView {
   const relation = Views.relationName(store, entry);
   return {
     entry,
-    key: Views.keyOf(store, entry),
+    key: entry.key,
     relation,
     label: Views.entryLabel(store, frame, entry),
     properties: Views.entryProperties(entry),
-    links: linksOf(entry).map(([link, reference]) =>
+    links: [...Views.entryLinks(entry)].map(([link, reference]) =>
       ({ link, object: objectAt(store, frame, reference, schemaOfLink(store, relation, link)) })),
   };
 }
@@ -122,8 +114,8 @@ export type Feed = () => Remote;
  * it is given a feed, the follow of what the service's store commits.
  *
  * Every read is within a transaction or through a follow ([CAP-315: every read within a transaction or through a follow](mbse:mbse-basis/docs/capabilities/CAP-315.md)). A view is a transaction the service executes
- * within one of its store's, and gives back as frames that hold each object by its reference and the values it
- * assigns: what the UI keeps outlives that transaction, and is stale from then on. So each view is kept only until the
+ * within one of its store's, and gives back as frames, each its journal, holding each object by its reference and the
+ * values the view shows (mbse-rest 0.5): what the UI keeps outlives that transaction, and is stale from then on. So each view is kept only until the
  * follow gives a transaction the service committed, any one, the UI's own edits among them: then every view kept is
  * dropped, and the listeners told (`version`), so that what shows a view reads it again. A refused view is asked again
  * next time.
