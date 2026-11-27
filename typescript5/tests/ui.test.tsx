@@ -88,6 +88,7 @@ describe("the schema browser (CAP-009)", () => {
 describe("the relation browser (CAP-011)", () => {
   test("entries grouped by relation, each once, relations in the store's order", async () => {
     const s = service();
+    await s.schemas(); // a frame is its journal: read by the app's schemas (mbse-rest 0.5)
     const detail = await s.detail(Views.read(s.store, response("detail-goal").split("\n")[0]!).binds.get("x"));
     const grouped = byRelation(["work.HasGoal", "work.Plans"], [...detail.entries, ...detail.entries]);
     expect([...grouped].map(([r, e]) => [r, e.length])).toEqual([["work.HasGoal", 1], ["work.Plans", 2], ["work.InGoals", 1]]);
